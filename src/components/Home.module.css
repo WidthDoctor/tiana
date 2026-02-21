@@ -80,8 +80,7 @@
   font-weight: 300;
   color: white;
   margin: 0 0 20px 0;
-  text-shadow: 1px 2px 2px rgb(0, 0, 0);
-  line-height: 1.6;
+  text-shadow: 1px 3px 2px rgb(0, 0, 0);
   user-select: none;
 }
 
@@ -90,12 +89,11 @@
   text-transform: uppercase;
   font-size: 1.5rem;
   font-weight: bold;
-  color: rgba(255, 255, 255, 0.95);
+  color: white;
   margin: 0;
   opacity: 0;
-  line-height: 1.6;
   letter-spacing: 5px;
-  text-shadow: 1px 2px 2px rgb(0, 0, 0);
+  text-shadow: 1px 3px 2px rgb(0, 0, 0);
   position: absolute;
   top: 60%;
   left: 2%;
