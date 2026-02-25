@@ -1,4 +1,4 @@
-import {cormorantGaramond} from '../app/fonts';
+import {cormorantGaramond} from '../../../app/fonts';
 import styles from './NavbarMini.module.css';
 
 

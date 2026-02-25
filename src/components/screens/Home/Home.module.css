@@ -20,11 +20,9 @@
 
 @keyframes slideInFromLeft {
   from {
-    opacity: 0;
     transform: translate(-100%, -50%);
   }
   to {
-    opacity: 1;
     transform: translate(-50%, -50%);
   }
 }
@@ -41,14 +39,16 @@
   }
 }
 
-.logo {
-  position: absolute;
-  top: 20%;
-  left: 20%;
-  animation: slideInFromLeft 1.2s ease-out forwards;
+.header {
+  position: relative;
+  width: 100vw;
+  height: 207px;
 }
 
-.logo p {
+.logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   text-transform: uppercase;
   font-size: 5rem;
   font-weight: 300;
@@ -61,5 +61,7 @@
   user-select: none;
   opacity: 0;
   filter: blur(8px);
-  animation: logoRevealFromBlur 0.95s ease-out 0.15s forwards;
+  animation:
+    slideInFromLeft 1.2s ease-out forwards,
+    logoRevealFromBlur 0.95s ease-out 0.15s forwards;
 }
