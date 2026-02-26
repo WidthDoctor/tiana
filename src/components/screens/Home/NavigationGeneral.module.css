@@ -43,19 +43,24 @@
 }
 
 .list li {
-  user-select: none;
   position: relative;
+}
+
+.list li a {
+  display: inline-block;
+  user-select: none;
   padding: 10px 10px 12px;
   font-size: 15px;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.712);
+  text-decoration: none;
   cursor: pointer;
   opacity: 0;
   filter: blur(8px);
   animation: itemRevealFromBlur 0.75s ease-out forwards;
 }
 
-.list li::before {
+.list li a::before {
   content: "";
   position: absolute;
   left: 0;
@@ -68,22 +73,31 @@
   transition: transform 0.25s ease;
 }
 
-.list li:hover::before {
+.list li a:hover::before,
+.list li a:focus-visible::before {
   transform: scaleX(1);
 }
 
-.list li:nth-child(1) {
+.list li a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.list li:nth-child(1) a {
   animation-delay: 0.25s;
 }
 
-.list li:nth-child(2) {
+.list li:nth-child(2) a {
   animation-delay: 0.45s;
 }
 
-.list li:nth-child(3) {
+.list li:nth-child(3) a {
   animation-delay: 0.65s;
 }
 
-.list li:nth-child(4) {
+.list li:nth-child(4) a {
   animation-delay: 0.85s;
+}
+.list li:nth-child(5) a {
+  animation-delay: 1.05s;
 }

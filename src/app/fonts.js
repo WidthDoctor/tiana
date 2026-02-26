@@ -1,3 +1,4 @@
+import localFont from "next/font/local";
 import {
   Bad_Script,
   Cormorant_Garamond,
@@ -19,4 +20,16 @@ export const zenKakuGothicNew = Zen_Kaku_Gothic_New({
   subsets: ["latin"],
   weight: "400",
   display: "swap",
+});
+
+export const erasLight = localFont({
+  src: [
+    {
+      path: "./fonts/eras-light.ttf",
+      weight: "400",
+      style: "normal",
+    },
+  ],
+  display: "swap",
+  preload: true,
 });
