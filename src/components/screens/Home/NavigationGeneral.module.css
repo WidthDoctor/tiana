@@ -1,9 +1,9 @@
 .navigation {
   position: absolute;
-  bottom: 0;
+  top: 30%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: stretch;
   width: 100vw;
 }
 
@@ -32,14 +32,62 @@
   }
 }
 
+@keyframes logoRevealFromBlur {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.row {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 36px 0 92px;
+}
+
 .list {
-  width: 1000px;
   list-style: none;
   display: flex;
-  justify-content: center;
-  gap: 60px;
+  align-items: center;
+  gap: 34px;
   padding: 0;
   margin: 0;
+}
+
+.leftList {
+  justify-content: flex-start;
+}
+
+.rightList {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0 0 4px;
+  text-transform: none;
+  font-size: 5rem;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.527);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.25),
+    0 6px 14px rgba(0, 0, 0, 0.16);
+  letter-spacing: 10px;
+  user-select: none;
+  opacity: 0;
+  filter: blur(8px);
+  animation: logoRevealFromBlur 0.95s ease-out 0.15s forwards;
 }
 
 .list li {
@@ -98,6 +146,27 @@
 .list li:nth-child(4) a {
   animation-delay: 0.85s;
 }
-.list li:nth-child(5) a {
+
+.leftList li:nth-child(1) a {
+  animation-delay: 0.25s;
+}
+
+.leftList li:nth-child(2) a {
+  animation-delay: 0.45s;
+}
+
+.rightList li:nth-child(1) a {
+  animation-delay: 0.65s;
+}
+
+.rightList li:nth-child(2) a {
+  animation-delay: 0.85s;
+}
+
+.rightList li:nth-child(3) a {
   animation-delay: 1.05s;
+}
+
+.rightList li:nth-child(4) a {
+  animation-delay: 1.25s;
 }
