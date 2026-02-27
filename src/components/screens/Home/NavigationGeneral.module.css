@@ -90,6 +90,24 @@
   animation: logoRevealFromBlur 0.95s ease-out 0.15s forwards;
 }
 
+.logoButton {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  text-shadow: inherit;
+  cursor: pointer;
+}
+
+.logoButton:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
 .list li {
   position: relative;
 }
