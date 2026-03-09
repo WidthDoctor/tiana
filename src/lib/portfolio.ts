@@ -9,6 +9,21 @@ const PORTFOLIO_ROOT = path.join(
   "portfolio",
 );
 const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".avif"]);
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+function withBasePath(src: string): string {
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    return src;
+  }
+
+  const normalizedSrc = src.startsWith("/") ? src : `/${src}`;
+
+  if (BASE_PATH && normalizedSrc.startsWith(`${BASE_PATH}/`)) {
+    return normalizedSrc;
+  }
+
+  return `${BASE_PATH}${normalizedSrc}`;
+}
 
 export interface PortfolioBride {
   id: string;
@@ -55,9 +70,10 @@ export async function getPortfolioBrides(): Promise<PortfolioBride[]> {
                 return IMAGE_EXTENSIONS.has(extension);
               })
               .sort((a, b) => a.localeCompare(b, "ru", { numeric: true }))
-              .map(
-                (fileName) =>
+              .map((fileName) =>
+                withBasePath(
                   `/images/portfolio/${encodeURIComponent(folder.name)}/${encodeURIComponent(fileName)}`,
+                ),
               ),
           ),
         );

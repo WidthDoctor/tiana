@@ -25,6 +25,21 @@ const MOBILE_MAIN_NAV_LINKS = [
 ] as const;
 
 const MOBILE_DUPLICATE_SECONDARY_IDS = new Set(["atelier", "appointment"]);
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
+function withBasePath(src: string): string {
+  if (src.startsWith("http://") || src.startsWith("https://")) {
+    return src;
+  }
+
+  const normalizedSrc = src.startsWith("/") ? src : `/${src}`;
+
+  if (BASE_PATH && normalizedSrc.startsWith(`${BASE_PATH}/`)) {
+    return normalizedSrc;
+  }
+
+  return `${BASE_PATH}${normalizedSrc}`;
+}
 
 export default function NavbarMini() {
   const router = useRouter();
@@ -535,7 +550,7 @@ export default function NavbarMini() {
         {menu.imageSrc ? (
           <div className={styles.contentMedia}>
             <Image
-              src={menu.imageSrc}
+              src={withBasePath(menu.imageSrc)}
               alt={menu.contentTitle ?? menu.label}
               fill
               sizes="(max-width: 900px) calc(100vw - 120px), 60vw"
