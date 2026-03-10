@@ -8,6 +8,7 @@ import { erasLight } from "../../../app/fonts";
 import type { PortfolioBride } from "../../../lib/portfolio";
 import styles from "./PortfolioDesktop.module.css";
 import PortfolioMobile from "./portfolioMobile";
+import Tiles from "./Tiles";
 
 const MOBILE_BRIDE_GAP_PX = 50;
 
@@ -21,6 +22,12 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   const [activeBrideIndex, setActiveBrideIndex] = useState<number | null>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
   const [mobileBrideIndex, setMobileBrideIndex] = useState(0);
+  const [mobileSelectedBrideIndex, setMobileSelectedBrideIndex] = useState<
+    number | null
+  >(null);
+  const [lastViewedMobileBrideIndex, setLastViewedMobileBrideIndex] = useState<
+    number | null
+  >(null);
   const [mobilePhotoIndex, setMobilePhotoIndex] = useState(0);
   const [mobileTrackOffsetX, setMobileTrackOffsetX] = useState(0);
   const [mobileTrackOffsetY, setMobileTrackOffsetY] = useState(0);
@@ -36,6 +43,15 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   const feedWidthRef = useRef(0);
   const feedHeightRef = useRef(0);
   const snapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasPortfolioHistoryEntryRef = useRef(false);
+
+  const isMobileViewport = useCallback(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.matchMedia("(max-width: 900px)").matches;
+  }, []);
 
   const bridesWithPhotos = useMemo(
     () => portfolioBrides.filter((bride) => bride.photos.length > 0),
@@ -86,7 +102,49 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     setMobileTrackOffsetY(0);
     setIsMobileTrackTransitionEnabled(false);
     setIsMobileBrideTransitionEnabled(false);
+    setMobileSelectedBrideIndex(null);
+    setLastViewedMobileBrideIndex(null);
+    hasPortfolioHistoryEntryRef.current = false;
   }, []);
+
+  const openMobileBrideFromTile = useCallback(
+    (brideIndex: number) => {
+      setMobileBrideIndex(brideIndex);
+      setMobilePhotoIndex(0);
+      setMobileSelectedBrideIndex(brideIndex);
+      setLastViewedMobileBrideIndex(brideIndex);
+
+      if (!isMobileViewport()) {
+        return;
+      }
+
+      window.history.pushState(
+        { tianaPortfolio: true, view: "mobile-viewer" },
+        "",
+        window.location.href,
+      );
+    },
+    [isMobileViewport],
+  );
+
+  const closeMobileViewer = useCallback(() => {
+    if (mobileSelectedBrideIndex === null) {
+      return;
+    }
+
+    if (isMobileViewport()) {
+      window.history.back();
+      return;
+    }
+
+    setLastViewedMobileBrideIndex(mobileBrideIndex);
+    setMobileSelectedBrideIndex(null);
+    setMobilePhotoIndex(0);
+    setMobileTrackOffsetX(0);
+    setMobileTrackOffsetY(0);
+    setIsMobileTrackTransitionEnabled(false);
+    setIsMobileBrideTransitionEnabled(false);
+  }, [isMobileViewport, mobileBrideIndex, mobileSelectedBrideIndex]);
 
   const openBrideViewer = (brideIndex: number) => {
     setActiveBrideIndex(brideIndex);
@@ -174,6 +232,57 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   }, [isPortfolioOpen]);
 
   useEffect(() => {
+    if (
+      !isPortfolioOpen ||
+      !isMobileViewport() ||
+      hasPortfolioHistoryEntryRef.current
+    ) {
+      return;
+    }
+
+    window.history.pushState(
+      { tianaPortfolio: true, view: "mobile-tiles" },
+      "",
+      window.location.href,
+    );
+
+    hasPortfolioHistoryEntryRef.current = true;
+  }, [isMobileViewport, isPortfolioOpen]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!isPortfolioOpen || !isMobileViewport()) {
+        return;
+      }
+
+      if (mobileSelectedBrideIndex !== null) {
+        setLastViewedMobileBrideIndex(mobileBrideIndex);
+        setMobileSelectedBrideIndex(null);
+        setMobilePhotoIndex(0);
+        setMobileTrackOffsetX(0);
+        setMobileTrackOffsetY(0);
+        setIsMobileTrackTransitionEnabled(false);
+        setIsMobileBrideTransitionEnabled(false);
+        return;
+      }
+
+      closePortfolio();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [
+    closePortfolio,
+    isMobileViewport,
+    mobileBrideIndex,
+    isPortfolioOpen,
+    mobileSelectedBrideIndex,
+  ]);
+
+  useEffect(() => {
     return () => {
       if (snapTimeoutRef.current) {
         clearTimeout(snapTimeoutRef.current);
@@ -184,7 +293,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   useEffect(() => {
     const node = mobileFeedRef.current;
 
-    if (!node) {
+    if (!node || mobileSelectedBrideIndex === null) {
       return;
     }
 
@@ -192,13 +301,16 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
       setMobileFeedHeight(node.clientHeight);
     };
 
-    updateHeight();
+    const frame = requestAnimationFrame(() => {
+      updateHeight();
+    });
     window.addEventListener("resize", updateHeight);
 
     return () => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("resize", updateHeight);
     };
-  }, [isPortfolioOpen]);
+  }, [isPortfolioOpen, mobileSelectedBrideIndex]);
 
   const activeMobileBride = bridesWithPhotos[mobileBrideIndex];
 
@@ -295,7 +407,24 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     }
 
     const width = Math.max(feedWidthRef.current, 1);
-    const clampedDeltaX = Math.max(Math.min(deltaX, width), -width);
+    const maxPhotoIndex = Math.max(
+      (activeMobileBride?.photos.length ?? 1) - 1,
+      0,
+    );
+    const isFirstPhoto = mobilePhotoIndex <= 0;
+    const isLastPhoto = mobilePhotoIndex >= maxPhotoIndex;
+
+    let adjustedDeltaX = deltaX;
+
+    if (isFirstPhoto && adjustedDeltaX > 0) {
+      adjustedDeltaX = 0;
+    }
+
+    if (isLastPhoto && adjustedDeltaX < 0) {
+      adjustedDeltaX = 0;
+    }
+
+    const clampedDeltaX = Math.max(Math.min(adjustedDeltaX, width), -width);
     setMobileTrackOffsetX(clampedDeltaX);
   };
 
@@ -455,6 +584,13 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
 
         {bridesWithPhotos.length > 0 ? (
           <>
+            <Tiles
+              brides={bridesWithPhotos}
+              onSelect={openMobileBrideFromTile}
+              isVisible={mobileSelectedBrideIndex === null}
+              activeBrideIndex={lastViewedMobileBrideIndex}
+            />
+
             <PortfolioMobile
               activeMobileBride={activeMobileBride}
               prevMobileBride={prevMobileBride}
@@ -480,6 +616,8 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
               canNextPhoto={canNextPhoto}
               onPrevPhoto={showPrevPhoto}
               onNextPhoto={showNextPhoto}
+              onClose={closeMobileViewer}
+              isVisible={mobileSelectedBrideIndex !== null}
             />
 
             <div className={styles.portfolioGrid}>

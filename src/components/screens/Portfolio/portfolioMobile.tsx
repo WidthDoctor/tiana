@@ -28,6 +28,8 @@ type PortfolioMobileProps = {
   canNextPhoto: boolean;
   onPrevPhoto: () => void;
   onNextPhoto: () => void;
+  onClose: () => void;
+  isVisible: boolean;
 };
 
 export default function PortfolioMobile({
@@ -55,11 +57,28 @@ export default function PortfolioMobile({
   canNextPhoto,
   onPrevPhoto,
   onNextPhoto,
+  onClose,
+  isVisible,
 }: PortfolioMobileProps) {
+  const handleCloseTouchStart = (event: TouchEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+  };
+
+  const handleCloseTouchMove = (event: TouchEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+  };
+
+  const handleCloseTouchEnd = (event: TouchEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    onClose();
+  };
+
   return (
     <section
-      className={styles.mobilePortfolioFeed}
+      className={`${styles.mobilePortfolioFeed} ${isVisible ? styles.mobilePortfolioFeedVisible : styles.mobilePortfolioFeedHidden}`}
       aria-label="Мобильная галерея"
+      inert={!isVisible}
       ref={mobileFeedRef}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
@@ -164,6 +183,20 @@ export default function PortfolioMobile({
               </div>
 
               <div className={styles.mobilePortfolioControls}>
+                <button
+                  type="button"
+                  className={styles.mobileCloseButton}
+                  onClick={onClose}
+                  onTouchStart={handleCloseTouchStart}
+                  onTouchMove={handleCloseTouchMove}
+                  onTouchEnd={handleCloseTouchEnd}
+                  aria-label="Закрыть просмотр"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M6.7 5.3a1 1 0 0 1 1.4 0L12 9.2l3.9-3.9a1 1 0 1 1 1.4 1.4L13.4 10.6l3.9 3.9a1 1 0 1 1-1.4 1.4L12 12l-3.9 3.9a1 1 0 1 1-1.4-1.4l3.9-3.9-3.9-3.9a1 1 0 0 1 0-1.4Z" />
+                  </svg>
+                </button>
+
                 {canPrevPhoto ? (
                   <button
                     type="button"

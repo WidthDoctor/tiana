@@ -13,6 +13,7 @@ import SelectMobile from "./selectMobile";
 
 const CONTENT_SWITCH_DURATION = 220;
 const CONTENT_CLOSE_DURATION = 820;
+const DRAWER_CLOSE_SWIPE_DURATION = 180;
 const INITIAL_MENU_ID = MENU_CONTENT_ITEMS[0]?.id ?? "";
 const SECTION_QUERY_PARAM = "section";
 
@@ -50,9 +51,22 @@ export default function Select() {
   const [isContentSwipeTransitionEnabled, setIsContentSwipeTransitionEnabled] =
     useState(false);
   const [isContentSwipeDragging, setIsContentSwipeDragging] = useState(false);
+  const [drawerSwipeOffsetX, setDrawerSwipeOffsetX] = useState(0);
+  const [isDrawerSwipeTransitionEnabled, setIsDrawerSwipeTransitionEnabled] =
+    useState(false);
+  const [isDrawerSwipeDragging, setIsDrawerSwipeDragging] = useState(false);
   const switchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openFrameRef = useRef<number | null>(null);
+  const drawerSwipeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const drawerRef = useRef<HTMLElement | null>(null);
+  const drawerTouchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const drawerTouchAxisRef = useRef<"x" | "y" | null>(null);
+  const drawerTouchWidthRef = useRef(0);
+  const skipHistoryPushRef = useRef(false);
+  const pendingMenuSelectionRef = useRef<MenuContentItem["id"] | null>(null);
   const contentTouchStartRef = useRef<{ x: number; y: number } | null>(null);
   const contentTouchAxisRef = useRef<"x" | "y" | null>(null);
   const contentTouchWidthRef = useRef(0);
@@ -67,6 +81,14 @@ export default function Select() {
   const selectorItemRefs = useRef<
     Partial<Record<MenuContentItem["id"], HTMLAnchorElement | null>>
   >({});
+
+  const isMobileViewport = useCallback(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.matchMedia("(max-width: 900px)").matches;
+  }, []);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
@@ -98,6 +120,10 @@ export default function Select() {
 
       if (contentSwipeTimeoutRef.current) {
         clearTimeout(contentSwipeTimeoutRef.current);
+      }
+
+      if (drawerSwipeTimeoutRef.current) {
+        clearTimeout(drawerSwipeTimeoutRef.current);
       }
     };
   }, []);
@@ -155,6 +181,17 @@ export default function Select() {
       return;
     }
 
+    if (
+      pendingMenuSelectionRef.current &&
+      menuIdFromQuery !== pendingMenuSelectionRef.current
+    ) {
+      return;
+    }
+
+    if (menuIdFromQuery === pendingMenuSelectionRef.current) {
+      pendingMenuSelectionRef.current = null;
+    }
+
     const frame = requestAnimationFrame(() => {
       setActiveMenuId((previous) =>
         previous === menuIdFromQuery ? previous : menuIdFromQuery,
@@ -186,26 +223,124 @@ export default function Select() {
     });
   };
 
-  const closeContentWithReverse = useCallback(() => {
-    if (!isContentVisible || isContentClosing) {
-      setIsOpen(false);
+  const closeContentWithReverse = useCallback(
+    (target: "main" | "burger" = "main") => {
+      if (switchTimeoutRef.current) {
+        clearTimeout(switchTimeoutRef.current);
+      }
+
+      if (contentSwipeTimeoutRef.current) {
+        clearTimeout(contentSwipeTimeoutRef.current);
+      }
+
+      if (!isContentVisible || isContentClosing) {
+        setIsOpen(target === "burger");
+        return;
+      }
+
+      setIsOpen(target === "burger");
+      setIsContentClosing(true);
+      setIsContentOpen(false);
+      setIsContentSwitching(false);
+
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+
+      closeTimeoutRef.current = setTimeout(() => {
+        setIsContentVisible(false);
+        setIsContentClosing(false);
+      }, CONTENT_CLOSE_DURATION);
+    },
+    [isContentClosing, isContentVisible],
+  );
+
+  const closeDrawer = useCallback(() => {
+    setIsOpen(false);
+    setDrawerSwipeOffsetX(0);
+    setIsDrawerSwipeDragging(false);
+    setIsDrawerSwipeTransitionEnabled(false);
+  }, []);
+
+  const openDrawer = useCallback(() => {
+    setIsOpen(true);
+    setDrawerSwipeOffsetX(0);
+    setIsDrawerSwipeDragging(false);
+    setIsDrawerSwipeTransitionEnabled(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileViewport() || !isOpen || isContentVisible) {
       return;
     }
 
-    setIsOpen(false);
-    setIsContentClosing(true);
-    setIsContentOpen(false);
-    setIsContentSwitching(false);
-
-    if (closeTimeoutRef.current) {
-      clearTimeout(closeTimeoutRef.current);
+    if (skipHistoryPushRef.current) {
+      skipHistoryPushRef.current = false;
+      return;
     }
 
-    closeTimeoutRef.current = setTimeout(() => {
-      setIsContentVisible(false);
-      setIsContentClosing(false);
-    }, CONTENT_CLOSE_DURATION);
-  }, [isContentClosing, isContentVisible]);
+    window.history.pushState(
+      { tianaMenu: true, view: "burger" },
+      "",
+      window.location.href,
+    );
+  }, [isContentVisible, isMobileViewport, isOpen]);
+
+  useEffect(() => {
+    if (!isMobileViewport() || !isContentVisible) {
+      return;
+    }
+
+    if (skipHistoryPushRef.current) {
+      skipHistoryPushRef.current = false;
+      return;
+    }
+
+    window.history.pushState(
+      { tianaMenu: true, view: "selector" },
+      "",
+      window.location.href,
+    );
+  }, [isContentVisible, isMobileViewport]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!isMobileViewport()) {
+        return;
+      }
+
+      skipHistoryPushRef.current = true;
+
+      if (isContentVisible) {
+        openDrawer();
+        closeContentWithReverse("burger");
+        return;
+      }
+
+      if (isOpen) {
+        closeDrawer();
+        requestAnimationFrame(() => {
+          skipHistoryPushRef.current = false;
+        });
+        return;
+      }
+
+      skipHistoryPushRef.current = false;
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [
+    closeContentWithReverse,
+    closeDrawer,
+    isContentVisible,
+    isMobileViewport,
+    isOpen,
+    openDrawer,
+  ]);
 
   useEffect(() => {
     const handleExternalLogoClose = () => {
@@ -244,7 +379,7 @@ export default function Select() {
       return;
     }
 
-    setIsOpen(false);
+    closeDrawer();
   };
 
   const handleMenuSelect = (
@@ -252,10 +387,20 @@ export default function Select() {
     options?: { skipSwitchAnimation?: boolean },
   ) => {
     const skipSwitchAnimation = options?.skipSwitchAnimation ?? false;
+    const wasContentClosing = isContentClosing;
 
-    setIsOpen(false);
+    closeDrawer();
+    pendingMenuSelectionRef.current = menuId;
     setActiveMenuId(menuId);
     router.replace(buildMenuHref(menuId), { scroll: false });
+
+    if (switchTimeoutRef.current) {
+      clearTimeout(switchTimeoutRef.current);
+    }
+
+    if (contentSwipeTimeoutRef.current) {
+      clearTimeout(contentSwipeTimeoutRef.current);
+    }
 
     if (!isContentVisible) {
       setDisplayedMenuId(menuId);
@@ -272,7 +417,7 @@ export default function Select() {
       return;
     }
 
-    if (skipSwitchAnimation) {
+    if (skipSwitchAnimation || wasContentClosing) {
       setIsContentSwipeTransitionEnabled(false);
       setContentSwipeOffsetX(0);
       setIsContentSwipeDragging(false);
@@ -474,6 +619,100 @@ export default function Select() {
     contentTouchAxisRef.current = null;
   };
 
+  const handleDrawerTouchStart = (event: TouchEvent<HTMLElement>) => {
+    if (!isOpen || isContentVisible) {
+      return;
+    }
+
+    const touch = event.touches[0];
+
+    if (drawerSwipeTimeoutRef.current) {
+      clearTimeout(drawerSwipeTimeoutRef.current);
+    }
+
+    drawerTouchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+
+    drawerTouchAxisRef.current = null;
+    drawerTouchWidthRef.current =
+      drawerRef.current?.clientWidth ?? event.currentTarget.clientWidth;
+    setIsDrawerSwipeTransitionEnabled(false);
+    setIsDrawerSwipeDragging(true);
+  };
+
+  const handleDrawerTouchMove = (event: TouchEvent<HTMLElement>) => {
+    const start = drawerTouchStartRef.current;
+    const touch = event.touches[0];
+
+    if (!start || !touch || !isOpen || isContentVisible) {
+      return;
+    }
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    if (!drawerTouchAxisRef.current && (absX > 8 || absY > 8)) {
+      drawerTouchAxisRef.current = absX >= absY ? "x" : "y";
+    }
+
+    if (drawerTouchAxisRef.current !== "x") {
+      return;
+    }
+
+    if (event.cancelable) {
+      event.preventDefault();
+    }
+
+    const width = Math.max(drawerTouchWidthRef.current, 1);
+    const clamped = Math.max(Math.min(deltaX, 0), -width);
+    setDrawerSwipeOffsetX(clamped);
+  };
+
+  const handleDrawerTouchEnd = (event: TouchEvent<HTMLElement>) => {
+    const start = drawerTouchStartRef.current;
+    const touch = event.changedTouches[0];
+
+    if (!start || !touch || !isOpen || isContentVisible) {
+      return;
+    }
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+    const width = Math.max(drawerTouchWidthRef.current, 1);
+    const threshold = width * 0.2;
+
+    setIsDrawerSwipeTransitionEnabled(true);
+
+    if (
+      drawerTouchAxisRef.current === "x" &&
+      deltaX < 0 &&
+      absX > absY &&
+      absX > threshold
+    ) {
+      setDrawerSwipeOffsetX(-width);
+      setIsDrawerSwipeDragging(false);
+
+      drawerSwipeTimeoutRef.current = setTimeout(() => {
+        closeDrawer();
+      }, DRAWER_CLOSE_SWIPE_DURATION);
+
+      drawerTouchStartRef.current = null;
+      drawerTouchAxisRef.current = null;
+      return;
+    }
+
+    setDrawerSwipeOffsetX(0);
+    setIsDrawerSwipeDragging(false);
+    drawerTouchStartRef.current = null;
+    drawerTouchAxisRef.current = null;
+  };
+
   const renderMenuContent = (menu: MenuContentItem | undefined) => {
     if (!menu) {
       return null;
@@ -550,7 +789,14 @@ export default function Select() {
         aria-label="Открыть меню"
         aria-expanded={isOpen}
         aria-controls="mini-menu-drawer"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => {
+          if (isOpen) {
+            closeDrawer();
+            return;
+          }
+
+          openDrawer();
+        }}
       >
         <span className={styles.burgerLine} />
         <span className={styles.burgerLine} />
@@ -561,13 +807,25 @@ export default function Select() {
         type="button"
         className={`${styles.backdrop} ${isOpen ? styles.backdropVisible : ""}`}
         aria-label="Закрыть меню"
-        onClick={() => setIsOpen(false)}
+        onClick={closeDrawer}
       />
 
       <nav
         id="mini-menu-drawer"
         className={`${styles.drawer} ${isOpen ? styles.drawerOpen : ""} ${cormorantGaramond.className}`}
         aria-label="Дополнительная навигация"
+        ref={drawerRef}
+        onTouchStart={handleDrawerTouchStart}
+        onTouchMove={handleDrawerTouchMove}
+        onTouchEnd={handleDrawerTouchEnd}
+        style={{
+          transform: `translateX(calc(${isOpen ? "0px" : "-110%"} + ${drawerSwipeOffsetX}px))`,
+          transition: isDrawerSwipeDragging
+            ? "none"
+            : isDrawerSwipeTransitionEnabled
+              ? "transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1)"
+              : undefined,
+        }}
       >
         <Link
           href="/"
@@ -586,7 +844,7 @@ export default function Select() {
           onPortfolioOpen={() => {
             window.dispatchEvent(new CustomEvent("tiana:open-portfolio"));
           }}
-          onCloseDrawer={() => setIsOpen(false)}
+          onCloseDrawer={closeDrawer}
         />
       </nav>
 

@@ -1,0 +1,102 @@
+.tilesFeed {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .tilesFeed {
+    background-color: rgba(227, 227, 227, 0.357);
+    display: block;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 8px;
+    overflow-y: auto;
+    transition:
+      opacity 0.28s ease,
+      transform 0.28s ease;
+    will-change: opacity, transform;
+  }
+
+  .tilesFeedVisible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .tilesFeedHidden {
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    height: 0;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .tilesGrid {
+    margin: 0;
+    padding: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    box-sizing: border-box;
+    gap: 6px;
+  }
+
+  .tileButton {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 244, 250, 0.1) 0%,
+      rgba(196, 225, 255, 0.572) 100%
+    );
+    border: 1px solid rgba(255, 240, 248, 0.55);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.16),
+      0 6px 14px rgba(25, 35, 52, 0.2);
+    transition:
+      transform 0.22s ease,
+      border-color 0.22s ease,
+      box-shadow 0.22s ease;
+  }
+
+  .tileButtonActive {
+    border-color: rgba(255, 236, 246, 0.8);
+    box-shadow:
+      0 0 0 1px rgba(255, 243, 250, 0.58),
+      0 0 18px rgb(255, 209, 231),
+      0 0 30px rgba(200, 233, 255, 0.28);
+    transform: scale(1.015);
+  }
+
+  .tileImage {
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .tileName {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 8px 6px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.58) 100%
+    );
+  }
+}

@@ -2,6 +2,21 @@
   display: none;
 }
 
+.mobilePortfolioFeedVisible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.mobilePortfolioFeedHidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .mobilePortfolioCard {
   position: relative;
   width: 100%;
@@ -112,7 +127,7 @@
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(113, 113, 113, 0.418);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   color: rgba(255, 255, 255, 0.72);
@@ -121,6 +136,47 @@
   justify-content: center;
   opacity: 0.68;
   backdrop-filter: blur(2px);
+}
+
+.mobileCloseButton {
+  pointer-events: auto;
+  position: absolute;
+  right: 12px;
+  top: 42%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  background: radial-gradient(
+    circle at 30% 20%,
+    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.18) 52%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  color: rgba(255, 255, 255, 0.92);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    background 0.22s ease;
+}
+
+.mobileCloseButton svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.mobileCloseButton:active {
+  transform: translateY(-50%) scale(0.98);
 }
 
 .mobileArrowLeft {
@@ -197,5 +253,14 @@
     height: calc(100dvh - 100px);
     touch-action: none;
     user-select: none;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+    will-change: opacity, transform;
+  }
+
+  .mobileCloseButton {
+    right: 14px;
+    top: 41%;
   }
 }
