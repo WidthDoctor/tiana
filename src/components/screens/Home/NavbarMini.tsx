@@ -68,6 +68,7 @@ export default function NavbarMini() {
   const contentSwipeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const contentSwipeViewportRef = useRef<HTMLDivElement | null>(null);
   const selectorContainerRef = useRef<HTMLDivElement | null>(null);
   const swipePanelRefs = useRef<
     Partial<Record<MenuContentItem["id"], HTMLElement | null>>
@@ -385,7 +386,9 @@ export default function NavbarMini() {
     };
 
     contentTouchAxisRef.current = null;
-    contentTouchWidthRef.current = event.currentTarget.clientWidth;
+    contentTouchWidthRef.current =
+      contentSwipeViewportRef.current?.clientWidth ??
+      event.currentTarget.clientWidth;
     setIsContentSwipeTransitionEnabled(false);
     setIsContentSwipeDragging(true);
   };
@@ -667,7 +670,7 @@ export default function NavbarMini() {
           <div className={styles.socials}>
             <a
               className={styles.socialLink}
-              href="https://instagram.com"
+              href="https://www.instagram.com/tiana.by?igsh=ZHF4M2lxMGp4Yjh5"
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram"
@@ -745,6 +748,7 @@ export default function NavbarMini() {
             onTouchEnd={handleContentTouchEnd}
           >
             <div
+              ref={contentSwipeViewportRef}
               className={styles.contentSwipeViewport}
               style={
                 contentSwipeViewportHeight !== null

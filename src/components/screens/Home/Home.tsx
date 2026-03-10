@@ -33,6 +33,7 @@ export default function Home({ portfolioBrides }: HomeProps) {
     useState(false);
   const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const mobileFeedRef = useRef<HTMLElement | null>(null);
+  const mobilePhotoViewportRef = useRef<HTMLDivElement | null>(null);
   const touchAxisRef = useRef<"x" | "y" | null>(null);
   const feedWidthRef = useRef(0);
   const feedHeightRef = useRef(0);
@@ -265,7 +266,9 @@ export default function Home({ portfolioBrides }: HomeProps) {
     };
 
     touchAxisRef.current = null;
-    feedWidthRef.current = event.currentTarget.clientWidth;
+    feedWidthRef.current =
+      mobilePhotoViewportRef.current?.clientWidth ??
+      event.currentTarget.clientWidth;
     feedHeightRef.current = event.currentTarget.clientHeight;
     if (mobileFeedHeight !== event.currentTarget.clientHeight) {
       setMobileFeedHeight(event.currentTarget.clientHeight);
@@ -505,7 +508,10 @@ export default function Home({ portfolioBrides }: HomeProps) {
                         : "none",
                     }}
                   >
-                    <div className={styles.mobileBrideSlide}>
+                    <div
+                      ref={mobilePhotoViewportRef}
+                      className={styles.mobileBrideSlide}
+                    >
                       {prevMobileBride ? (
                         <>
                           <div className={styles.mobilePortfolioMedia}>
