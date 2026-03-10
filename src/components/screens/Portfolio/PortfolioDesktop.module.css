@@ -300,9 +300,11 @@
 @media (max-width: 900px) {
   .portfolioStage {
     top: 100px;
-    bottom: env(safe-area-inset-bottom, 0px);
+    bottom: auto;
     left: 0;
     right: 0;
+    height: calc(100svh - 100px);
+    height: calc(100dvh - 100px);
     padding: 0;
     overflow: hidden;
   }
