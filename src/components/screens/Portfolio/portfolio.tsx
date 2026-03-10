@@ -230,7 +230,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     }
 
     setMobilePhotoIndex((prev) =>
-      prev >= activeMobileBride.photos.length - 1 ? 0 : prev + 1,
+      Math.min(prev + 1, activeMobileBride.photos.length - 1),
     );
   }, [activeMobileBride]);
 
@@ -239,9 +239,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
       return;
     }
 
-    setMobilePhotoIndex((prev) =>
-      prev === 0 ? activeMobileBride.photos.length - 1 : prev - 1,
-    );
+    setMobilePhotoIndex((prev) => Math.max(prev - 1, 0));
   }, [activeMobileBride]);
 
   const handleFeedTouchStart = (event: TouchEvent<HTMLElement>) => {
@@ -322,6 +320,17 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
 
       if (absX > threshold) {
         const isNextPhoto = deltaX < 0;
+        const canNavigate = isNextPhoto
+          ? mobilePhotoIndex < mobilePhotoCount - 1
+          : mobilePhotoIndex > 0;
+
+        if (!canNavigate) {
+          setMobileTrackOffsetX(0);
+          touchStartRef.current = null;
+          touchAxisRef.current = null;
+          return;
+        }
+
         setMobileTrackOffsetX(isNextPhoto ? -width : width);
 
         snapTimeoutRef.current = setTimeout(() => {
@@ -402,16 +411,16 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   const mobilePhotos = activeMobileBride?.photos ?? [];
   const mobilePhotoCount = mobilePhotos.length;
   const currentMobilePhoto = mobilePhotos[mobilePhotoIndex] ?? "";
+  const canPrevPhoto = mobilePhotoIndex > 0;
+  const canNextPhoto = mobilePhotoIndex < mobilePhotoCount - 1;
   const prevMobilePhoto =
-    mobilePhotoCount > 0
-      ? mobilePhotos[
-          (mobilePhotoIndex - 1 + mobilePhotoCount) % mobilePhotoCount
-        ]
-      : "";
+    mobilePhotoCount > 0 && canPrevPhoto
+      ? mobilePhotos[mobilePhotoIndex - 1]
+      : currentMobilePhoto;
   const nextMobilePhoto =
-    mobilePhotoCount > 0
-      ? mobilePhotos[(mobilePhotoIndex + 1) % mobilePhotoCount]
-      : "";
+    mobilePhotoCount > 0 && canNextPhoto
+      ? mobilePhotos[mobilePhotoIndex + 1]
+      : currentMobilePhoto;
 
   const prevMobileBride =
     bridesWithPhotos.length > 0
@@ -467,6 +476,10 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
               onTouchStart={handleFeedTouchStart}
               onTouchMove={handleFeedTouchMove}
               onTouchEnd={handleFeedTouchEnd}
+              canPrevPhoto={canPrevPhoto}
+              canNextPhoto={canNextPhoto}
+              onPrevPhoto={showPrevPhoto}
+              onNextPhoto={showNextPhoto}
             />
 
             <div className={styles.portfolioGrid}>

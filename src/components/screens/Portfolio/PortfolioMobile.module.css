@@ -84,8 +84,7 @@
 }
 
 .mobilePortfolioBride,
-.mobilePortfolioMeta,
-.mobilePortfolioHint {
+.mobilePortfolioMeta {
   margin: 0;
 }
 
@@ -100,11 +99,95 @@
   color: rgba(255, 255, 255, 0.86);
 }
 
-.mobilePortfolioHint {
-  margin-top: 8px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.76);
-  letter-spacing: 0.02em;
+.mobilePortfolioControls {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mobileArrow {
+  pointer-events: auto;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.72);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.68;
+  backdrop-filter: blur(2px);
+}
+
+.mobileArrowLeft {
+  left: 12px;
+}
+
+.mobileArrowRight {
+  right: 12px;
+}
+
+.mobileArrow svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.mobileScrollDownHint {
+  position: absolute;
+  right: 25px;
+  bottom: 50px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0.72;
+  animation: scrollHintFloat 1.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.mobileDownChevron {
+  width: 9px;
+  height: 9px;
+  border-right: 1.6px solid rgba(255, 255, 255, 0.84);
+  border-bottom: 1.6px solid rgba(255, 255, 255, 0.84);
+  transform: rotate(45deg);
+}
+
+.mobileDownChevron:last-child {
+  animation: chevronPulse 1.8s ease-in-out infinite;
+}
+
+@keyframes scrollHintFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.72;
+  }
+
+  45% {
+    transform: translateY(-4px);
+    opacity: 0.92;
+  }
+
+  70% {
+    transform: translateY(1px);
+    opacity: 0.78;
+  }
+}
+
+@keyframes chevronPulse {
+  0%,
+  100% {
+    opacity: 0.82;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 900px) {

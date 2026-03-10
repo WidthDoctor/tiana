@@ -24,6 +24,10 @@ type PortfolioMobileProps = {
   onTouchStart: (event: TouchEvent<HTMLElement>) => void;
   onTouchMove: (event: TouchEvent<HTMLElement>) => void;
   onTouchEnd: (event: TouchEvent<HTMLElement>) => void;
+  canPrevPhoto: boolean;
+  canNextPhoto: boolean;
+  onPrevPhoto: () => void;
+  onNextPhoto: () => void;
 };
 
 export default function PortfolioMobile({
@@ -47,6 +51,10 @@ export default function PortfolioMobile({
   onTouchStart,
   onTouchMove,
   onTouchEnd,
+  canPrevPhoto,
+  canNextPhoto,
+  onPrevPhoto,
+  onNextPhoto,
 }: PortfolioMobileProps) {
   return (
     <section
@@ -153,12 +161,39 @@ export default function PortfolioMobile({
                   Фото {mobilePhotoIndex + 1} /{" "}
                   {activeMobileBride.photos.length}
                 </p>
-                <p className={styles.mobilePortfolioHint}>
-                  Влево — предыдущее фото • Вправо — следующее фото
-                </p>
-                <p className={styles.mobilePortfolioHint}>
-                  Вверх/вниз — невеста
-                </p>
+              </div>
+
+              <div className={styles.mobilePortfolioControls}>
+                {canPrevPhoto ? (
+                  <button
+                    type="button"
+                    className={`${styles.mobileArrow} ${styles.mobileArrowLeft}`}
+                    onClick={onPrevPhoto}
+                    aria-label="Предыдущее фото"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M14.7 5.3a1 1 0 0 1 0 1.4L9.4 12l5.3 5.3a1 1 0 0 1-1.4 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.4 0Z" />
+                    </svg>
+                  </button>
+                ) : null}
+
+                {canNextPhoto ? (
+                  <button
+                    type="button"
+                    className={`${styles.mobileArrow} ${styles.mobileArrowRight}`}
+                    onClick={onNextPhoto}
+                    aria-label="Следующее фото"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M9.3 5.3a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4-1.4l5.3-5.3-5.3-5.3a1 1 0 0 1 0-1.4Z" />
+                    </svg>
+                  </button>
+                ) : null}
+              </div>
+
+              <div className={styles.mobileScrollDownHint} aria-hidden="true">
+                <span className={styles.mobileDownChevron} />
+                <span className={styles.mobileDownChevron} />
               </div>
             </div>
 
