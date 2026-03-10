@@ -7,4 +7,4 @@
 :HL["/tiana/_next/static/media/fd0ed3d1a7b71e32-s.p.38803033.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
 :HL["/tiana/_next/static/chunks/dde8a1fd34023065.css","style"]
 :HL["/tiana/_next/static/chunks/c4a8398e98ff4fc2.css","style"]
-0:{"buildId":"MvKbiPuvhtwkQ3M9a9HS9","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"VnqbHtVGrDGA_fI36k4Kk","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
