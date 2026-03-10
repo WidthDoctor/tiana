@@ -88,7 +88,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 18px 14px 24px;
+  padding: 18px 14px calc(24px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0) 0%,
@@ -196,7 +196,7 @@
 .mobileScrollDownHint {
   position: absolute;
   right: 25px;
-  bottom: 50px;
+  bottom: calc(50px + env(safe-area-inset-bottom, 0px));
   display: inline-flex;
   flex-direction: column;
   gap: 2px;
@@ -250,7 +250,10 @@
   .mobilePortfolioFeed {
     display: block;
     width: 100%;
+    height: calc(100svh - 100px);
     height: calc(100dvh - 100px);
+    box-sizing: border-box;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     touch-action: none;
     user-select: none;
     transition:

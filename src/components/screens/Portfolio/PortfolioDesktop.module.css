@@ -300,7 +300,7 @@
 @media (max-width: 900px) {
   .portfolioStage {
     top: 100px;
-    bottom: 0;
+    bottom: env(safe-area-inset-bottom, 0px);
     left: 0;
     right: 0;
     padding: 0;
