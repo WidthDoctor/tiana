@@ -146,21 +146,21 @@
   transform: translateY(-50%);
   width: 40px;
   height: 40px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 0, 0, 0.113);
   border-radius: 999px;
   background: radial-gradient(
     circle at 30% 20%,
-    rgba(255, 255, 255, 0.32) 0%,
+    rgba(255, 255, 255, 0.117) 0%,
     rgba(255, 255, 255, 0.18) 52%,
     rgba(255, 255, 255, 0.08) 100%
   );
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.535);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(4px);
   box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.32),
+    0 10px 24px rgba(0, 0, 0, 0.104),
     inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition:
     transform 0.22s ease,

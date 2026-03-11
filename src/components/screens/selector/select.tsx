@@ -888,6 +888,11 @@ export default function Select() {
             onTouchMove={handleContentTouchMove}
             onTouchEnd={handleContentTouchEnd}
           >
+            <div className={styles.mobileSwipeHint} aria-hidden="true">
+              <span className={styles.mobileSwipeChevron} />
+              <span className={styles.mobileSwipeChevron} />
+            </div>
+
             <div
               ref={contentSwipeViewportRef}
               className={styles.contentSwipeViewport}
