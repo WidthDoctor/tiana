@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, TouchEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./Journal.module.css";
 import { DEFAULT_JOURNAL_POSTS } from "./posts/defaultPosts";
@@ -52,11 +52,18 @@ export default function Journal() {
   const [posts, setPosts] = useState<JournalPost[]>(DEFAULT_JOURNAL_POSTS);
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
   const [isImageZoomOpen, setIsImageZoomOpen] = useState(false);
-  const [zoomImageSrc, setZoomImageSrc] = useState<string | null>(null);
+  const [zoomImageIndex, setZoomImageIndex] = useState(0);
   const hasJournalHistoryEntryRef = useRef(false);
   const hasArticleHistoryEntryRef = useRef(false);
   const hasZoomHistoryEntryRef = useRef(false);
   const skipHistoryPushRef = useRef(false);
+  const zoomTouchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const zoomTouchAxisRef = useRef<"x" | "y" | null>(null);
+  const zoomViewportWidthRef = useRef(0);
+  const zoomSnapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [zoomSwipeOffsetX, setZoomSwipeOffsetX] = useState(0);
+  const [isZoomSwipeTransitionEnabled, setIsZoomSwipeTransitionEnabled] =
+    useState(false);
 
   const isMobileViewport = useCallback(() => {
     if (typeof window === "undefined") {
@@ -132,7 +139,9 @@ export default function Journal() {
     setIsJournalOpen(false);
     setActivePostIndex(null);
     setIsImageZoomOpen(false);
-    setZoomImageSrc(null);
+    setZoomImageIndex(0);
+    setZoomSwipeOffsetX(0);
+    setIsZoomSwipeTransitionEnabled(false);
     hasJournalHistoryEntryRef.current = false;
     hasArticleHistoryEntryRef.current = false;
     hasZoomHistoryEntryRef.current = false;
@@ -197,6 +206,27 @@ export default function Journal() {
   const activePost =
     activePostIndex !== null ? posts[activePostIndex] : undefined;
   const isArticleOpen = Boolean(activePost);
+  const zoomImages = useMemo(() => {
+    if (!activePost) {
+      return [] as string[];
+    }
+
+    const sources = [activePost.cover, ...(activePost.images ?? [])]
+      .map((src) => normalizeImageSrc(src))
+      .filter((src) => Boolean(src));
+
+    return Array.from(new Set(sources));
+  }, [activePost]);
+
+  const zoomImageSrc = zoomImages[zoomImageIndex] ?? null;
+  const canPrevZoomImage = zoomImageIndex > 0;
+  const canNextZoomImage = zoomImageIndex < zoomImages.length - 1;
+  const prevZoomImageSrc = canPrevZoomImage
+    ? zoomImages[zoomImageIndex - 1]
+    : zoomImageSrc;
+  const nextZoomImageSrc = canNextZoomImage
+    ? zoomImages[zoomImageIndex + 1]
+    : zoomImageSrc;
 
   useEffect(() => {
     if (!isJournalOpen || !isMobileViewport()) {
@@ -288,7 +318,7 @@ export default function Journal() {
 
       if (isImageZoomOpen) {
         setIsImageZoomOpen(false);
-        setZoomImageSrc(null);
+        setZoomImageIndex(0);
         hasZoomHistoryEntryRef.current = false;
 
         requestAnimationFrame(() => {
@@ -300,7 +330,7 @@ export default function Journal() {
       if (isArticleOpen) {
         setActivePostIndex(null);
         setIsImageZoomOpen(false);
-        setZoomImageSrc(null);
+        setZoomImageIndex(0);
         hasArticleHistoryEntryRef.current = false;
         hasZoomHistoryEntryRef.current = false;
 
@@ -337,24 +367,147 @@ export default function Journal() {
   const handleCloseArticle = () => {
     setActivePostIndex(null);
     setIsImageZoomOpen(false);
-    setZoomImageSrc(null);
+    setZoomImageIndex(0);
+    setZoomSwipeOffsetX(0);
+    setIsZoomSwipeTransitionEnabled(false);
     hasArticleHistoryEntryRef.current = false;
     hasZoomHistoryEntryRef.current = false;
   };
 
   const handleOpenImageZoom = (imageSrc: string) => {
-    if (!activePost || !imageSrc) {
+    if (!activePost || !imageSrc || zoomImages.length === 0) {
       return;
     }
 
-    setZoomImageSrc(imageSrc);
+    const imageIndex = zoomImages.findIndex((source) => source === imageSrc);
+    setZoomImageIndex(imageIndex >= 0 ? imageIndex : 0);
     setIsImageZoomOpen(true);
   };
 
   const handleCloseImageZoom = () => {
     setIsImageZoomOpen(false);
-    setZoomImageSrc(null);
+    setZoomImageIndex(0);
+    setZoomSwipeOffsetX(0);
+    setIsZoomSwipeTransitionEnabled(false);
     hasZoomHistoryEntryRef.current = false;
+  };
+
+  const handlePrevZoomImage = () => {
+    if (!canPrevZoomImage) {
+      return;
+    }
+
+    setZoomImageIndex((previous) => Math.max(previous - 1, 0));
+  };
+
+  const handleNextZoomImage = () => {
+    if (!canNextZoomImage) {
+      return;
+    }
+
+    setZoomImageIndex((previous) =>
+      Math.min(previous + 1, zoomImages.length - 1),
+    );
+  };
+
+  const handleZoomTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    if (zoomSnapTimeoutRef.current) {
+      clearTimeout(zoomSnapTimeoutRef.current);
+    }
+
+    zoomTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    zoomTouchAxisRef.current = null;
+    zoomViewportWidthRef.current = event.currentTarget.clientWidth;
+    setIsZoomSwipeTransitionEnabled(false);
+  };
+
+  const handleZoomTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    const start = zoomTouchStartRef.current;
+
+    if (!touch || !start) {
+      return;
+    }
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (
+      !zoomTouchAxisRef.current &&
+      (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)
+    ) {
+      zoomTouchAxisRef.current =
+        Math.abs(deltaX) >= Math.abs(deltaY) ? "x" : "y";
+    }
+
+    if (zoomTouchAxisRef.current !== "x") {
+      return;
+    }
+
+    const width = Math.max(zoomViewportWidthRef.current, 1);
+    let adjustedDeltaX = deltaX;
+
+    if (!canPrevZoomImage && adjustedDeltaX > 0) {
+      adjustedDeltaX *= 0.18;
+    }
+
+    if (!canNextZoomImage && adjustedDeltaX < 0) {
+      adjustedDeltaX *= 0.18;
+    }
+
+    const clampedDeltaX = Math.max(Math.min(adjustedDeltaX, width), -width);
+    setZoomSwipeOffsetX(clampedDeltaX);
+  };
+
+  const handleZoomTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.changedTouches[0];
+    const start = zoomTouchStartRef.current;
+
+    if (!touch || !start) {
+      return;
+    }
+
+    const deltaX = touch.clientX - start.x;
+
+    if (zoomTouchAxisRef.current === "x") {
+      const width = Math.max(zoomViewportWidthRef.current, 1);
+      const threshold = width * 0.2;
+      setIsZoomSwipeTransitionEnabled(true);
+
+      if (Math.abs(deltaX) > threshold) {
+        const isNextImage = deltaX < 0;
+        const canNavigate = isNextImage ? canNextZoomImage : canPrevZoomImage;
+
+        if (canNavigate) {
+          setZoomSwipeOffsetX(isNextImage ? -width : width);
+
+          zoomSnapTimeoutRef.current = setTimeout(() => {
+            setZoomImageIndex((previous) =>
+              isNextImage
+                ? Math.min(previous + 1, zoomImages.length - 1)
+                : Math.max(previous - 1, 0),
+            );
+            setIsZoomSwipeTransitionEnabled(false);
+            setZoomSwipeOffsetX(0);
+          }, 180);
+
+          zoomTouchStartRef.current = null;
+          zoomTouchAxisRef.current = null;
+          return;
+        }
+      }
+
+      setZoomSwipeOffsetX(0);
+    }
+
+    zoomTouchStartRef.current = null;
+    zoomTouchAxisRef.current = null;
   };
 
   const handleNextPost = () => {
@@ -387,6 +540,24 @@ export default function Journal() {
       return Math.min(prev, posts.length - 1);
     });
   }, [posts]);
+
+  useEffect(() => {
+    if (zoomImages.length === 0) {
+      setZoomImageIndex(0);
+      return;
+    }
+
+    setZoomImageIndex((previous) => Math.min(previous, zoomImages.length - 1));
+    setZoomSwipeOffsetX(0);
+  }, [zoomImages]);
+
+  useEffect(() => {
+    return () => {
+      if (zoomSnapTimeoutRef.current) {
+        clearTimeout(zoomSnapTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -563,6 +734,30 @@ export default function Journal() {
           <div className={styles.imageZoomPanel}>
             <button
               type="button"
+              className={`${styles.imageZoomArrow} ${styles.imageZoomArrowLeft}`}
+              onClick={handlePrevZoomImage}
+              aria-label="Предыдущее изображение"
+              disabled={!canPrevZoomImage}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14.7 5.3a1 1 0 0 1 0 1.4L9.4 12l5.3 5.3a1 1 0 0 1-1.4 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.4 0Z" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.imageZoomArrow} ${styles.imageZoomArrowRight}`}
+              onClick={handleNextZoomImage}
+              aria-label="Следующее изображение"
+              disabled={!canNextZoomImage}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9.3 5.3a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4-1.4l5.3-5.3-5.3-5.3a1 1 0 0 1 0-1.4Z" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
               className={styles.imageZoomClose}
               onClick={handleCloseImageZoom}
               aria-label="Закрыть"
@@ -576,14 +771,72 @@ export default function Journal() {
               </svg>
             </button>
 
-            <div className={styles.imageZoomMedia}>
-              <Image
-                src={zoomImageSrc}
-                alt={activePost.title}
-                fill
-                sizes="100vw"
-                className={styles.imageZoomImage}
-              />
+            <div
+              className={styles.imageZoomMedia}
+              onTouchStart={handleZoomTouchStart}
+              onTouchMove={handleZoomTouchMove}
+              onTouchEnd={handleZoomTouchEnd}
+            >
+              <div
+                className={styles.imageZoomTrack}
+                style={
+                  {
+                    transform: `translateX(calc(-33.333333% + ${zoomSwipeOffsetX}px))`,
+                    transition: isZoomSwipeTransitionEnabled
+                      ? "transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1)"
+                      : "none",
+                  } as CSSProperties
+                }
+              >
+                <div className={styles.imageZoomSlide}>
+                  <Image
+                    src={prevZoomImageSrc ?? zoomImageSrc}
+                    alt={activePost.title}
+                    fill
+                    sizes="100vw"
+                    className={styles.imageZoomImage}
+                  />
+                </div>
+
+                <div className={styles.imageZoomSlide}>
+                  <Image
+                    src={zoomImageSrc}
+                    alt={activePost.title}
+                    fill
+                    sizes="100vw"
+                    className={styles.imageZoomImage}
+                  />
+                </div>
+
+                <div className={styles.imageZoomSlide}>
+                  <Image
+                    src={nextZoomImageSrc ?? zoomImageSrc}
+                    alt={activePost.title}
+                    fill
+                    sizes="100vw"
+                    className={styles.imageZoomImage}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.imageZoomMobileHints} aria-hidden="true">
+                <span
+                  className={`${styles.imageZoomHint} ${styles.imageZoomHintLeft}`}
+                >
+                  <span className={styles.imageZoomHintChevron} />
+                  <span className={styles.imageZoomHintChevron} />
+                </span>
+                <span
+                  className={`${styles.imageZoomHint} ${styles.imageZoomHintRight}`}
+                >
+                  <span className={styles.imageZoomHintChevron} />
+                  <span className={styles.imageZoomHintChevron} />
+                </span>
+              </div>
+
+              <p className={styles.imageZoomCounter}>
+                {zoomImageIndex + 1} / {zoomImages.length}
+              </p>
             </div>
           </div>
         ) : null}

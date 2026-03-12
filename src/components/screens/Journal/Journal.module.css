@@ -289,6 +289,42 @@
   background: rgba(15, 15, 15, 0.94);
 }
 
+.imageZoomArrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.66);
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.94);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+
+.imageZoomArrow svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.imageZoomArrowLeft {
+  left: 12px;
+}
+
+.imageZoomArrowRight {
+  right: 12px;
+}
+
+.imageZoomArrow:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
 .imageZoomClose {
   position: absolute;
   top: 12px;
@@ -310,11 +346,78 @@
   position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+}
+
+.imageZoomTrack {
+  display: flex;
+  width: 300%;
+  height: 100%;
+  will-change: transform;
+}
+
+.imageZoomSlide {
+  position: relative;
+  width: 33.333333%;
+  height: 100%;
+  flex: 0 0 33.333333%;
 }
 
 .imageZoomImage {
   object-fit: contain;
   object-position: center;
+}
+
+.imageZoomMobileHints {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 2;
+  display: none;
+  justify-content: space-between;
+  padding: 0 18px;
+  pointer-events: none;
+}
+
+.imageZoomHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.72;
+}
+
+.imageZoomHintLeft {
+  transform: rotate(180deg);
+}
+
+.imageZoomHintChevron {
+  width: 12px;
+  height: 12px;
+  border-right: 2px solid rgba(255, 255, 255, 0.9);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.9);
+  transform: rotate(-45deg);
+  animation: imageZoomHintPulse 1.3s ease-in-out infinite;
+}
+
+.imageZoomHintChevron:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.imageZoomCounter {
+  position: absolute;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 2;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.42);
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 12px;
+  line-height: 1;
 }
 
 .articleBody {
@@ -401,6 +504,19 @@
     opacity: 1;
     filter: blur(0);
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes imageZoomHintPulse {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: rotate(-45deg) translateX(0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: rotate(-45deg) translateX(3px);
   }
 }
 
@@ -526,5 +642,13 @@
     height: 100dvh;
     margin: 0;
     border-radius: 0;
+  }
+
+  .imageZoomArrow {
+    display: none;
+  }
+
+  .imageZoomMobileHints {
+    display: flex;
   }
 }
