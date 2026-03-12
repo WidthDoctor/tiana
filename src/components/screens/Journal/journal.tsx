@@ -57,6 +57,8 @@ export default function Journal() {
   const hasArticleHistoryEntryRef = useRef(false);
   const hasZoomHistoryEntryRef = useRef(false);
   const skipHistoryPushRef = useRef(false);
+  const articleContentWrapRef = useRef<HTMLDivElement | null>(null);
+  const shouldScrollToTopOnPostChangeRef = useRef(false);
   const zoomTouchStartRef = useRef<{ x: number; y: number } | null>(null);
   const zoomTouchAxisRef = useRef<"x" | "y" | null>(null);
   const zoomViewportWidthRef = useRef(0);
@@ -515,6 +517,7 @@ export default function Journal() {
       return;
     }
 
+    shouldScrollToTopOnPostChangeRef.current = true;
     setActivePostIndex((activePostIndex + 1) % posts.length);
   };
 
@@ -540,6 +543,15 @@ export default function Journal() {
       return Math.min(prev, posts.length - 1);
     });
   }, [posts]);
+
+  useEffect(() => {
+    if (!shouldScrollToTopOnPostChangeRef.current) {
+      return;
+    }
+
+    shouldScrollToTopOnPostChangeRef.current = false;
+    articleContentWrapRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, [activePostIndex]);
 
   useEffect(() => {
     if (zoomImages.length === 0) {
@@ -630,7 +642,10 @@ export default function Journal() {
               ))}
             </aside>
 
-            <div className={styles.articleContentWrap}>
+            <div
+              className={styles.articleContentWrap}
+              ref={articleContentWrapRef}
+            >
               <button
                 type="button"
                 className={styles.articleClose}
