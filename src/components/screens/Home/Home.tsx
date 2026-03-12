@@ -7,6 +7,7 @@ import type { PortfolioBride } from "../../../lib/portfolio";
 import styles from "./HomeStyles.module.css";
 import NavigationGeneral from "./NavigationGeneral";
 import Portfolio from "../Portfolio/portfolio";
+import Journal from "../Journal/journal";
 import Select from "../selector";
 
 type HomeProps = {
@@ -53,6 +54,7 @@ export default function Home({ portfolioBrides }: HomeProps) {
       </section>
 
       <Portfolio portfolioBrides={portfolioBrides} />
+      <Journal />
     </main>
   );
 }

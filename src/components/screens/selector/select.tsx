@@ -372,6 +372,18 @@ export default function Select() {
     };
   }, [closeContentWithReverse]);
 
+  useEffect(() => {
+    const handleJournalOpen = () => {
+      closeContentWithReverse();
+    };
+
+    window.addEventListener("tiana:open-journal", handleJournalOpen);
+
+    return () => {
+      window.removeEventListener("tiana:open-journal", handleJournalOpen);
+    };
+  }, [closeContentWithReverse]);
+
   const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (isContentVisible) {
       event.preventDefault();
@@ -843,6 +855,9 @@ export default function Select() {
           onMenuSelect={handleMenuSelect}
           onPortfolioOpen={() => {
             window.dispatchEvent(new CustomEvent("tiana:open-portfolio"));
+          }}
+          onJournalOpen={() => {
+            window.dispatchEvent(new CustomEvent("tiana:open-journal"));
           }}
           onCloseDrawer={closeDrawer}
         />

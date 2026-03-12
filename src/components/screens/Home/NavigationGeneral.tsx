@@ -21,6 +21,11 @@ export default function NavigationGeneral({
     window.dispatchEvent(new CustomEvent("tiana:open-portfolio"));
   };
 
+  const handleJournalClick = (event: MouseEvent<HTMLAnchorElement>): void => {
+    event.preventDefault();
+    window.dispatchEvent(new CustomEvent("tiana:open-journal"));
+  };
+
   return (
     <nav
       className={`${styles.navigation} ${cormorantGaramond.className}`}
@@ -56,7 +61,9 @@ export default function NavigationGeneral({
             <Link href="/contacts">Контакты</Link>
           </li>
           <li>
-            <Link href="/journal">Журнал</Link>
+            <Link href="/?section=journal" onClick={handleJournalClick}>
+              Журнал
+            </Link>
           </li>
           <li>
             <Link href="/appointment">Записаться на приём</Link>

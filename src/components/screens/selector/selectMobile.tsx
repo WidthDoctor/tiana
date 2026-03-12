@@ -8,7 +8,7 @@ const MOBILE_MAIN_NAV_LINKS = [
   { href: "/accessories", label: "Аксессуары" },
   { href: "/atelier", label: "Ателье" },
   { href: "/contacts", label: "Контакты" },
-  { href: "/journal", label: "Журнал" },
+  { href: "/?section=journal", label: "Журнал", isJournal: true },
   { href: "/appointment", label: "Записаться на приём" },
 ] as const;
 
@@ -19,6 +19,7 @@ type SelectMobileProps = {
   buildMenuHref: (menuId: MenuContentItem["id"]) => string;
   onMenuSelect: (menuId: MenuContentItem["id"]) => void;
   onPortfolioOpen: () => void;
+  onJournalOpen: () => void;
   onCloseDrawer: () => void;
 };
 
@@ -31,20 +32,26 @@ export default function SelectMobile({
   buildMenuHref,
   onMenuSelect,
   onPortfolioOpen,
+  onJournalOpen,
   onCloseDrawer,
 }: SelectMobileProps) {
   const handleMainNavClick = (
     event: MouseEvent<HTMLAnchorElement>,
     isPortfolio?: boolean,
+    isJournal?: boolean,
   ) => {
     onCloseDrawer();
 
-    if (!isPortfolio) {
+    if (isPortfolio) {
+      event.preventDefault();
+      onPortfolioOpen();
       return;
     }
 
-    event.preventDefault();
-    onPortfolioOpen();
+    if (isJournal) {
+      event.preventDefault();
+      onJournalOpen();
+    }
   };
 
   return (
@@ -60,6 +67,7 @@ export default function SelectMobile({
                   handleMainNavClick(
                     event,
                     "isPortfolio" in item ? item.isPortfolio : undefined,
+                    "isJournal" in item ? item.isJournal : undefined,
                   )
                 }
               >

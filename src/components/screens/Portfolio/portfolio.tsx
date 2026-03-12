@@ -220,6 +220,18 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   }, [closePortfolio]);
 
   useEffect(() => {
+    const handleJournalOpen = () => {
+      closePortfolio();
+    };
+
+    window.addEventListener("tiana:open-journal", handleJournalOpen);
+
+    return () => {
+      window.removeEventListener("tiana:open-journal", handleJournalOpen);
+    };
+  }, [closePortfolio]);
+
+  useEffect(() => {
     const className = "portfolio-open";
 
     document.documentElement.classList.toggle(className, isPortfolioOpen);

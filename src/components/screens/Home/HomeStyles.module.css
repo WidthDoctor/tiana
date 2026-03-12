@@ -29,6 +29,10 @@
   transform: translateY(-118%);
 }
 
+:global(.journal-open) .content {
+  transform: translateY(-118%);
+}
+
 @keyframes borderSlideIn {
   from {
     transform: scaleX(0);
