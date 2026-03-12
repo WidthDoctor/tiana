@@ -153,6 +153,27 @@
   color: rgba(0, 0, 0, 0.66);
 }
 
+.formatControls {
+  display: flex;
+  gap: 6px;
+}
+
+.formatButton {
+  min-width: 30px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.94);
+  color: rgba(0, 0, 0, 0.82);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.formatButton:last-child {
+  font-style: italic;
+}
+
 .field input,
 .fieldFull input,
 .fieldFull textarea,

@@ -112,6 +112,7 @@
   font-size: 15px;
   line-height: 1.42;
   color: rgba(0, 0, 0, 0.68);
+  white-space: pre-wrap;
 }
 
 .articleOverlay {
@@ -437,6 +438,7 @@
   font-size: 18px;
   line-height: 1.48;
   color: rgba(0, 0, 0, 0.72);
+  white-space: pre-wrap;
 }
 
 .articleGallery {
@@ -478,6 +480,7 @@
   font-size: 17px;
   line-height: 1.58;
   color: rgba(0, 0, 0, 0.74);
+  white-space: pre-wrap;
 }
 
 .articleNextButton {

@@ -3,12 +3,63 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, TouchEvent } from "react";
+import type { ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./Journal.module.css";
 import { DEFAULT_JOURNAL_POSTS } from "./posts/defaultPosts";
 import { loadPostsFromPublicFolders } from "./posts/folderStorage";
 import { loadJournalPosts } from "./posts/storage";
 import type { JournalPost } from "./posts/types";
+
+function renderFormattedText(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let cursor = 0;
+  let keyIndex = 0;
+
+  while (cursor < text.length) {
+    if (text.startsWith("**", cursor)) {
+      const end = text.indexOf("**", cursor + 2);
+
+      if (end !== -1) {
+        const boldText = text.slice(cursor + 2, end);
+        nodes.push(<strong key={`strong-${keyIndex}`}>{boldText}</strong>);
+        keyIndex += 1;
+        cursor = end + 2;
+        continue;
+      }
+    }
+
+    if (text.startsWith("*", cursor)) {
+      const end = text.indexOf("*", cursor + 1);
+
+      if (end !== -1) {
+        const italicText = text.slice(cursor + 1, end);
+        nodes.push(<em key={`em-${keyIndex}`}>{italicText}</em>);
+        keyIndex += 1;
+        cursor = end + 1;
+        continue;
+      }
+    }
+
+    const nextBold = text.indexOf("**", cursor);
+    const nextItalic = text.indexOf("*", cursor);
+
+    let nextMarkerIndex = text.length;
+
+    if (nextBold !== -1) {
+      nextMarkerIndex = Math.min(nextMarkerIndex, nextBold);
+    }
+
+    if (nextItalic !== -1) {
+      nextMarkerIndex = Math.min(nextMarkerIndex, nextItalic);
+    }
+
+    nodes.push(text.slice(cursor, nextMarkerIndex));
+    cursor = nextMarkerIndex;
+  }
+
+  return nodes;
+}
 
 function getPublicBasePath(): string {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
@@ -607,8 +658,12 @@ export default function Journal() {
                     className={styles.journalImage}
                   />
                 </div>
-                <h3 className={styles.journalCardTitle}>{post.title}</h3>
-                <p className={styles.journalCardText}>{post.excerpt}</p>
+                <h3 className={styles.journalCardTitle}>
+                  {renderFormattedText(post.title)}
+                </h3>
+                <p className={styles.journalCardText}>
+                  {renderFormattedText(post.excerpt)}
+                </p>
               </button>
             </article>
           ))}
@@ -637,7 +692,7 @@ export default function Journal() {
                   onClick={() => setActivePostIndex(postIndex)}
                   aria-label={`Перейти к статье: ${post.title}`}
                 >
-                  {post.title}
+                  {renderFormattedText(post.title)}
                 </button>
               ))}
             </aside>
@@ -681,8 +736,12 @@ export default function Journal() {
               </div>
 
               <article className={styles.articleBody}>
-                <h3 className={styles.articleTitle}>{activePost.title}</h3>
-                <p className={styles.articleLead}>{activePost.excerpt}</p>
+                <h3 className={styles.articleTitle}>
+                  {renderFormattedText(activePost.title)}
+                </h3>
+                <p className={styles.articleLead}>
+                  {renderFormattedText(activePost.excerpt)}
+                </p>
 
                 {(activePost.images ?? []).length > 0 ? (
                   <div className={styles.articleGallery}>
@@ -716,7 +775,9 @@ export default function Journal() {
                     <h4 className={styles.articleSectionTitle}>
                       {section.heading}
                     </h4>
-                    <p className={styles.articleSectionText}>{section.text}</p>
+                    <p className={styles.articleSectionText}>
+                      {renderFormattedText(section.text)}
+                    </p>
                   </section>
                 ))}
 

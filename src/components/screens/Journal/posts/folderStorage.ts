@@ -171,7 +171,7 @@ export async function syncPostsToDirectory(
     ...post,
     id: safeFolderId(post.id, `post-${index + 1}`),
     title: post.title.trim() || `Пост ${index + 1}`,
-    excerpt: post.excerpt.trim() || "Краткое описание",
+    excerpt: post.excerpt.length > 0 ? post.excerpt : "Краткое описание",
     images: Array.isArray(post.images)
       ? post.images.filter((image) => typeof image === "string" && image.trim())
       : [],
@@ -179,7 +179,7 @@ export async function syncPostsToDirectory(
       post.sections.length > 0
         ? post.sections.map((section) => ({
             heading: section.heading.trim() || "Раздел",
-            text: section.text.trim() || "",
+            text: section.text,
           }))
         : [{ heading: "Раздел", text: "" }],
   }));

@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import { useRef } from "react";
+import type { KeyboardEvent } from "react";
 import styles from "./Editor.module.css";
 import { DEFAULT_JOURNAL_POSTS } from "../posts/defaultPosts";
 import {
@@ -49,6 +51,46 @@ function moveItem<T>(items: T[], from: number, to: number): T[] {
   return next;
 }
 
+function toggleInlineMarker(
+  value: string,
+  start: number,
+  end: number,
+  marker: "**" | "*",
+): { value: string; selectionStart: number; selectionEnd: number } {
+  const selected = value.slice(start, end);
+  const hasMarker =
+    selected.startsWith(marker) &&
+    selected.endsWith(marker) &&
+    selected.length >= marker.length * 2;
+
+  if (hasMarker) {
+    const unwrapped = selected.slice(
+      marker.length,
+      selected.length - marker.length,
+    );
+    const nextValue = `${value.slice(0, start)}${unwrapped}${value.slice(end)}`;
+    const nextStart = start;
+    const nextEnd = start + unwrapped.length;
+    return {
+      value: nextValue,
+      selectionStart: nextStart,
+      selectionEnd: nextEnd,
+    };
+  }
+
+  const wrapped = `${marker}${selected}${marker}`;
+  const nextValue = `${value.slice(0, start)}${wrapped}${value.slice(end)}`;
+
+  if (start === end) {
+    const cursor = start + marker.length;
+    return { value: nextValue, selectionStart: cursor, selectionEnd: cursor };
+  }
+
+  const nextStart = start + marker.length;
+  const nextEnd = nextStart + selected.length;
+  return { value: nextValue, selectionStart: nextStart, selectionEnd: nextEnd };
+}
+
 export default function Editor() {
   const [posts, setPosts] = useState<JournalPost[]>(() => loadJournalPosts());
   const [activePostId, setActivePostId] = useState<string>(
@@ -57,6 +99,8 @@ export default function Editor() {
   const [statusText, setStatusText] = useState("Готово к редактированию.");
   const [postsDirHandle, setPostsDirHandle] =
     useState<PostsDirectoryHandle | null>(null);
+  const excerptTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const sectionTextareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
 
   const activePostIndex = posts.findIndex((post) => post.id === activePostId);
   const activePost = activePostIndex >= 0 ? posts[activePostIndex] : undefined;
@@ -266,6 +310,81 @@ export default function Editor() {
     });
   };
 
+  const applyExcerptFormat = (marker: "**" | "*") => {
+    if (!activePost || !excerptTextareaRef.current) {
+      return;
+    }
+
+    const textarea = excerptTextareaRef.current;
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    const result = toggleInlineMarker(activePost.excerpt, start, end, marker);
+
+    updatePost({
+      ...activePost,
+      excerpt: result.value,
+    });
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.selectionStart, result.selectionEnd);
+    });
+  };
+
+  const applySectionFormat = (sectionIndex: number, marker: "**" | "*") => {
+    if (!activePost) {
+      return;
+    }
+
+    const textarea = sectionTextareaRefs.current[sectionIndex];
+
+    if (!textarea) {
+      return;
+    }
+
+    const currentText = activePost.sections[sectionIndex]?.text ?? "";
+    const start = textarea.selectionStart ?? 0;
+    const end = textarea.selectionEnd ?? start;
+    const result = toggleInlineMarker(currentText, start, end, marker);
+
+    const sections = activePost.sections.map((section, index) =>
+      index === sectionIndex ? { ...section, text: result.value } : section,
+    );
+
+    updatePost({
+      ...activePost,
+      sections,
+    });
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(result.selectionStart, result.selectionEnd);
+    });
+  };
+
+  const handleTextFormattingHotkeys = (
+    event: KeyboardEvent<HTMLTextAreaElement>,
+    onBold: () => void,
+    onItalic: () => void,
+  ) => {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) {
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+
+    if (key === "b") {
+      event.preventDefault();
+      onBold();
+      return;
+    }
+
+    if (key === "i") {
+      event.preventDefault();
+      onItalic();
+    }
+  };
+
   const getOrPickPostsDirHandle = async () => {
     if (postsDirHandle) {
       return postsDirHandle;
@@ -305,7 +424,7 @@ export default function Editor() {
         ...post,
         id: safeId,
         title: post.title.trim() || `Пост ${index + 1}`,
-        excerpt: post.excerpt.trim() || "Краткое описание",
+        excerpt: post.excerpt.length > 0 ? post.excerpt : "Краткое описание",
         images: Array.isArray(post.images)
           ? post.images
               .map((image) => image.trim())
@@ -315,7 +434,7 @@ export default function Editor() {
           post.sections.length > 0
             ? post.sections.map((section) => ({
                 heading: section.heading.trim() || "Раздел",
-                text: section.text.trim() || "",
+                text: section.text,
               }))
             : [{ heading: "Раздел", text: "" }],
       };
@@ -470,9 +589,35 @@ export default function Editor() {
 
               <label className={styles.fieldFull}>
                 <span>Краткий текст</span>
+                <div className={styles.formatControls}>
+                  <button
+                    type="button"
+                    className={styles.formatButton}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => applyExcerptFormat("**")}
+                  >
+                    B
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.formatButton}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => applyExcerptFormat("*")}
+                  >
+                    I
+                  </button>
+                </div>
                 <textarea
                   rows={3}
+                  ref={excerptTextareaRef}
                   value={activePost.excerpt}
+                  onKeyDown={(event) =>
+                    handleTextFormattingHotkeys(
+                      event,
+                      () => applyExcerptFormat("**"),
+                      () => applyExcerptFormat("*"),
+                    )
+                  }
                   onChange={(event) =>
                     updatePost({ ...activePost, excerpt: event.target.value })
                   }
@@ -589,9 +734,37 @@ export default function Editor() {
 
                   <label className={styles.fieldFull}>
                     <span>Текст секции</span>
+                    <div className={styles.formatControls}>
+                      <button
+                        type="button"
+                        className={styles.formatButton}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => applySectionFormat(sectionIndex, "**")}
+                      >
+                        B
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.formatButton}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => applySectionFormat(sectionIndex, "*")}
+                      >
+                        I
+                      </button>
+                    </div>
                     <textarea
                       rows={5}
+                      ref={(node) => {
+                        sectionTextareaRefs.current[sectionIndex] = node;
+                      }}
                       value={section.text}
+                      onKeyDown={(event) =>
+                        handleTextFormattingHotkeys(
+                          event,
+                          () => applySectionFormat(sectionIndex, "**"),
+                          () => applySectionFormat(sectionIndex, "*"),
+                        )
+                      }
                       onChange={(event) =>
                         handleSectionChange(
                           sectionIndex,
