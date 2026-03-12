@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./Journal.module.css";
@@ -10,6 +10,42 @@ import { loadPostsFromPublicFolders } from "./posts/folderStorage";
 import { loadJournalPosts } from "./posts/storage";
 import type { JournalPost } from "./posts/types";
 
+function getPublicBasePath(): string {
+  const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+  return basePath.endsWith("/") ? basePath.slice(0, -1) : basePath;
+}
+
+function normalizeImageSrc(src: string): string {
+  if (!src) {
+    return src;
+  }
+
+  if (
+    src.startsWith("data:image/") ||
+    src.startsWith("blob:") ||
+    src.startsWith("http://") ||
+    src.startsWith("https://")
+  ) {
+    return src;
+  }
+
+  const basePath = getPublicBasePath();
+
+  if (!basePath) {
+    return src;
+  }
+
+  if (src === basePath || src.startsWith(`${basePath}/`)) {
+    return src;
+  }
+
+  if (src.startsWith("/")) {
+    return `${basePath}${src}`;
+  }
+
+  return `${basePath}/${src.replace(/^\/+/, "")}`;
+}
+
 export default function Journal() {
   const searchParams = useSearchParams();
   const [isJournalOpen, setIsJournalOpen] = useState(false);
@@ -17,6 +53,18 @@ export default function Journal() {
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
   const [isImageZoomOpen, setIsImageZoomOpen] = useState(false);
   const [zoomImageSrc, setZoomImageSrc] = useState<string | null>(null);
+  const hasJournalHistoryEntryRef = useRef(false);
+  const hasArticleHistoryEntryRef = useRef(false);
+  const hasZoomHistoryEntryRef = useRef(false);
+  const skipHistoryPushRef = useRef(false);
+
+  const isMobileViewport = useCallback(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return window.matchMedia("(max-width: 900px)").matches;
+  }, []);
   useEffect(() => {
     const syncPosts = () => {
       setPosts(loadJournalPosts());
@@ -85,6 +133,9 @@ export default function Journal() {
     setActivePostIndex(null);
     setIsImageZoomOpen(false);
     setZoomImageSrc(null);
+    hasJournalHistoryEntryRef.current = false;
+    hasArticleHistoryEntryRef.current = false;
+    hasZoomHistoryEntryRef.current = false;
   }, []);
 
   useEffect(() => {
@@ -147,6 +198,138 @@ export default function Journal() {
     activePostIndex !== null ? posts[activePostIndex] : undefined;
   const isArticleOpen = Boolean(activePost);
 
+  useEffect(() => {
+    if (!isJournalOpen || !isMobileViewport()) {
+      return;
+    }
+
+    if (skipHistoryPushRef.current) {
+      skipHistoryPushRef.current = false;
+      return;
+    }
+
+    if (hasJournalHistoryEntryRef.current) {
+      return;
+    }
+
+    window.history.pushState(
+      { tianaJournal: true, view: "stage" },
+      "",
+      window.location.href,
+    );
+
+    hasJournalHistoryEntryRef.current = true;
+  }, [isJournalOpen, isMobileViewport]);
+
+  useEffect(() => {
+    if (!isJournalOpen || !isArticleOpen || !isMobileViewport()) {
+      if (!isArticleOpen) {
+        hasArticleHistoryEntryRef.current = false;
+      }
+      return;
+    }
+
+    if (skipHistoryPushRef.current) {
+      skipHistoryPushRef.current = false;
+      return;
+    }
+
+    if (hasArticleHistoryEntryRef.current) {
+      return;
+    }
+
+    window.history.pushState(
+      { tianaJournal: true, view: "article" },
+      "",
+      window.location.href,
+    );
+
+    hasArticleHistoryEntryRef.current = true;
+  }, [isArticleOpen, isJournalOpen, isMobileViewport]);
+
+  useEffect(() => {
+    if (
+      !isJournalOpen ||
+      !isArticleOpen ||
+      !isImageZoomOpen ||
+      !isMobileViewport()
+    ) {
+      if (!isImageZoomOpen) {
+        hasZoomHistoryEntryRef.current = false;
+      }
+      return;
+    }
+
+    if (skipHistoryPushRef.current) {
+      skipHistoryPushRef.current = false;
+      return;
+    }
+
+    if (hasZoomHistoryEntryRef.current) {
+      return;
+    }
+
+    window.history.pushState(
+      { tianaJournal: true, view: "zoom" },
+      "",
+      window.location.href,
+    );
+
+    hasZoomHistoryEntryRef.current = true;
+  }, [isArticleOpen, isImageZoomOpen, isJournalOpen, isMobileViewport]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!isMobileViewport() || !isJournalOpen) {
+        return;
+      }
+
+      skipHistoryPushRef.current = true;
+
+      if (isImageZoomOpen) {
+        setIsImageZoomOpen(false);
+        setZoomImageSrc(null);
+        hasZoomHistoryEntryRef.current = false;
+
+        requestAnimationFrame(() => {
+          skipHistoryPushRef.current = false;
+        });
+        return;
+      }
+
+      if (isArticleOpen) {
+        setActivePostIndex(null);
+        setIsImageZoomOpen(false);
+        setZoomImageSrc(null);
+        hasArticleHistoryEntryRef.current = false;
+        hasZoomHistoryEntryRef.current = false;
+
+        requestAnimationFrame(() => {
+          skipHistoryPushRef.current = false;
+        });
+        return;
+      }
+
+      closeJournal();
+
+      requestAnimationFrame(() => {
+        skipHistoryPushRef.current = false;
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [
+    closeJournal,
+    isArticleOpen,
+    isImageZoomOpen,
+    isJournalOpen,
+    isMobileViewport,
+  ]);
+
   const handleOpenPost = (postIndex: number) => {
     setActivePostIndex(postIndex);
   };
@@ -155,6 +338,8 @@ export default function Journal() {
     setActivePostIndex(null);
     setIsImageZoomOpen(false);
     setZoomImageSrc(null);
+    hasArticleHistoryEntryRef.current = false;
+    hasZoomHistoryEntryRef.current = false;
   };
 
   const handleOpenImageZoom = (imageSrc: string) => {
@@ -169,6 +354,7 @@ export default function Journal() {
   const handleCloseImageZoom = () => {
     setIsImageZoomOpen(false);
     setZoomImageSrc(null);
+    hasZoomHistoryEntryRef.current = false;
   };
 
   const handleNextPost = () => {
@@ -231,7 +417,7 @@ export default function Journal() {
               >
                 <div className={styles.journalMedia}>
                   <Image
-                    src={post.cover}
+                    src={normalizeImageSrc(post.cover)}
                     alt={post.title}
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -293,11 +479,13 @@ export default function Journal() {
                 <button
                   type="button"
                   className={styles.articleHeroButton}
-                  onClick={() => handleOpenImageZoom(activePost.cover)}
+                  onClick={() =>
+                    handleOpenImageZoom(normalizeImageSrc(activePost.cover))
+                  }
                   aria-label="Открыть изображение полностью"
                 >
                   <Image
-                    src={activePost.cover}
+                    src={normalizeImageSrc(activePost.cover)}
                     alt={activePost.title}
                     fill
                     sizes="(max-width: 900px) 100vw, 66vw"
@@ -317,11 +505,13 @@ export default function Journal() {
                         key={`${activePost.id}-gallery-${imageIndex}`}
                         type="button"
                         className={styles.articleGalleryItem}
-                        onClick={() => handleOpenImageZoom(image)}
+                        onClick={() =>
+                          handleOpenImageZoom(normalizeImageSrc(image))
+                        }
                         aria-label={`Открыть изображение ${imageIndex + 1}`}
                       >
                         <Image
-                          src={image}
+                          src={normalizeImageSrc(image)}
                           alt={`${activePost.title} — фото ${imageIndex + 1}`}
                           fill
                           sizes="(max-width: 900px) 40vw, 220px"

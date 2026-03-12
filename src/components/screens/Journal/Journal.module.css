@@ -421,7 +421,16 @@
     bottom: auto;
     height: calc(100svh - 100px);
     height: calc(100dvh - 100px);
-    padding: 12px 10px 20px;
+    padding: 12px 10px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .journalIntro {
+    margin-bottom: 14px;
+  }
+
+  .journalTitle {
+    font-size: clamp(28px, 8.5vw, 44px);
+    line-height: 1.02;
   }
 
   .journalGrid {
@@ -444,19 +453,66 @@
 
   .articleSidebar {
     display: flex;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    padding: 10px;
+    padding: 10px 10px 8px;
   }
 
   .sidebarPostButton {
-    width: 260px;
-    min-width: 260px;
-    min-height: 48px;
+    width: 220px;
+    min-width: 220px;
+    min-height: 44px;
+    font-size: 13px;
   }
 
   .articleContentWrap {
-    grid-template-rows: 220px 1fr;
+    grid-template-rows: minmax(180px, 30svh) 1fr;
+  }
+
+  .articleClose {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .articleBody {
+    padding: 14px 12px calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .articleTitle {
+    font-size: clamp(24px, 7.4vw, 32px);
+  }
+
+  .articleLead {
+    margin-top: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .articleGallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .articleSection {
+    margin-top: 16px;
+  }
+
+  .articleSectionTitle {
+    font-size: 20px;
+  }
+
+  .articleSectionText {
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.52;
+  }
+
+  .articleNextButton {
+    width: 100%;
   }
 
   .imageZoomPanel {
