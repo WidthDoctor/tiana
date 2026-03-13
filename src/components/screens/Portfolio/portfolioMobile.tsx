@@ -110,7 +110,7 @@ export default function PortfolioMobile({
                       fill
                       sizes="100vw"
                       className={styles.mobilePortfolioImage}
-                      priority
+                      loading="lazy"
                     />
                   </div>
                   <div className={styles.mobileNeighborLabel}>
@@ -140,7 +140,7 @@ export default function PortfolioMobile({
                       fill
                       sizes="100vw"
                       className={styles.mobilePortfolioImage}
-                      priority
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -166,7 +166,7 @@ export default function PortfolioMobile({
                       fill
                       sizes="100vw"
                       className={styles.mobilePortfolioImage}
-                      priority
+                      loading="lazy"
                     />
                   </div>
                 </div>
@@ -243,7 +243,7 @@ export default function PortfolioMobile({
                       fill
                       sizes="100vw"
                       className={styles.mobilePortfolioImage}
-                      priority
+                      loading="lazy"
                     />
                   </div>
                   <div className={styles.mobileNeighborLabel}>

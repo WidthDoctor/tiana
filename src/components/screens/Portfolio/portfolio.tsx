@@ -864,6 +864,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
                       fill
                       sizes="(max-width: 900px) 92vw, 72vw"
                       className={styles.viewerImage}
+                      loading="lazy"
                     />
                   </div>
 
@@ -874,6 +875,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
                       fill
                       sizes="(max-width: 900px) 92vw, 72vw"
                       className={styles.viewerImage}
+                      priority
                     />
                   </div>
 
@@ -884,6 +886,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
                       fill
                       sizes="(max-width: 900px) 92vw, 72vw"
                       className={styles.viewerImage}
+                      loading="lazy"
                     />
                   </div>
                 </div>

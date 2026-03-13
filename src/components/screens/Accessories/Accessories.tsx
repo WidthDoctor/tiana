@@ -709,6 +709,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
                     fill
                     sizes="(max-width: 900px) 100vw, 72vw"
                     className={styles.imageZoomImage}
+                    loading="lazy"
                   />
                 </div>
 
@@ -719,6 +720,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
                     fill
                     sizes="(max-width: 900px) 100vw, 72vw"
                     className={styles.imageZoomImage}
+                    priority
                   />
                 </div>
 
@@ -729,6 +731,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
                     fill
                     sizes="(max-width: 900px) 100vw, 72vw"
                     className={styles.imageZoomImage}
+                    loading="lazy"
                   />
                 </div>
               </div>
@@ -771,6 +774,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
                     fill
                     sizes="72px"
                     className={styles.imageZoomThumbImage}
+                    loading="lazy"
                   />
                 </button>
               ))}
