@@ -32,6 +32,9 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   const [mobileTrackOffsetX, setMobileTrackOffsetX] = useState(0);
   const [mobileTrackOffsetY, setMobileTrackOffsetY] = useState(0);
   const [mobileFeedHeight, setMobileFeedHeight] = useState(0);
+  const [viewerSwipeOffsetX, setViewerSwipeOffsetX] = useState(0);
+  const [isViewerSwipeTransitionEnabled, setIsViewerSwipeTransitionEnabled] =
+    useState(false);
   const [isMobileTrackTransitionEnabled, setIsMobileTrackTransitionEnabled] =
     useState(false);
   const [isMobileBrideTransitionEnabled, setIsMobileBrideTransitionEnabled] =
@@ -43,6 +46,12 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   const feedWidthRef = useRef(0);
   const feedHeightRef = useRef(0);
   const snapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const viewerTouchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const viewerTouchAxisRef = useRef<"x" | "y" | null>(null);
+  const viewerViewportWidthRef = useRef(0);
+  const viewerSnapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const hasPortfolioHistoryEntryRef = useRef(false);
 
   const isMobileViewport = useCallback(() => {
@@ -149,16 +158,31 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
   const openBrideViewer = (brideIndex: number) => {
     setActiveBrideIndex(brideIndex);
     setActivePhotoIndex(0);
+    setViewerSwipeOffsetX(0);
+    setIsViewerSwipeTransitionEnabled(false);
   };
 
   const closeBrideViewer = () => {
     setActiveBrideIndex(null);
     setActivePhotoIndex(0);
+    setViewerSwipeOffsetX(0);
+    setIsViewerSwipeTransitionEnabled(false);
   };
 
   const activeBride =
     activeBrideIndex !== null ? bridesWithPhotos[activeBrideIndex] : undefined;
   const isViewerOpen = Boolean(activeBride);
+  const hasMultipleViewerPhotos = (activeBride?.photos.length ?? 0) > 1;
+  const prevViewerPhotoIndex = activeBride
+    ? activePhotoIndex === 0
+      ? activeBride.photos.length - 1
+      : activePhotoIndex - 1
+    : 0;
+  const nextViewerPhotoIndex = activeBride
+    ? activePhotoIndex === activeBride.photos.length - 1
+      ? 0
+      : activePhotoIndex + 1
+    : 0;
 
   const handlePrevPhoto = useCallback(() => {
     if (!activeBride) {
@@ -168,6 +192,8 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     setActivePhotoIndex((prev) =>
       prev === 0 ? activeBride.photos.length - 1 : prev - 1,
     );
+    setViewerSwipeOffsetX(0);
+    setIsViewerSwipeTransitionEnabled(false);
   }, [activeBride]);
 
   const handleNextPhoto = useCallback(() => {
@@ -178,7 +204,111 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     setActivePhotoIndex((prev) =>
       prev === activeBride.photos.length - 1 ? 0 : prev + 1,
     );
+    setViewerSwipeOffsetX(0);
+    setIsViewerSwipeTransitionEnabled(false);
   }, [activeBride]);
+
+  const handleViewerTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleViewerPhotos) {
+      return;
+    }
+
+    const touch = event.touches[0];
+
+    if (!touch) {
+      return;
+    }
+
+    if (viewerSnapTimeoutRef.current) {
+      clearTimeout(viewerSnapTimeoutRef.current);
+    }
+
+    viewerTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    viewerTouchAxisRef.current = null;
+    viewerViewportWidthRef.current = event.currentTarget.clientWidth;
+    setIsViewerSwipeTransitionEnabled(false);
+  };
+
+  const handleViewerTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleViewerPhotos) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    const start = viewerTouchStartRef.current;
+
+    if (!touch || !start) {
+      return;
+    }
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (
+      !viewerTouchAxisRef.current &&
+      (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8)
+    ) {
+      viewerTouchAxisRef.current =
+        Math.abs(deltaX) >= Math.abs(deltaY) ? "x" : "y";
+    }
+
+    if (viewerTouchAxisRef.current !== "x") {
+      return;
+    }
+
+    const width = Math.max(viewerViewportWidthRef.current, 1);
+    const clampedDeltaX = Math.max(Math.min(deltaX, width), -width);
+    setViewerSwipeOffsetX(clampedDeltaX);
+  };
+
+  const handleViewerTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleViewerPhotos || !activeBride) {
+      return;
+    }
+
+    const touch = event.changedTouches[0];
+    const start = viewerTouchStartRef.current;
+
+    if (!touch || !start) {
+      return;
+    }
+
+    const deltaX = touch.clientX - start.x;
+
+    if (viewerTouchAxisRef.current === "x") {
+      const width = Math.max(viewerViewportWidthRef.current, 1);
+      const threshold = width * 0.2;
+      setIsViewerSwipeTransitionEnabled(true);
+
+      if (Math.abs(deltaX) > threshold) {
+        const isNextPhoto = deltaX < 0;
+        setViewerSwipeOffsetX(isNextPhoto ? -width : width);
+
+        viewerSnapTimeoutRef.current = setTimeout(() => {
+          setActivePhotoIndex((previous) =>
+            isNextPhoto
+              ? previous === activeBride.photos.length - 1
+                ? 0
+                : previous + 1
+              : previous === 0
+                ? activeBride.photos.length - 1
+                : previous - 1,
+          );
+          setIsViewerSwipeTransitionEnabled(false);
+          setViewerSwipeOffsetX(0);
+        }, 180);
+
+        viewerTouchStartRef.current = null;
+        viewerTouchAxisRef.current = null;
+        return;
+      }
+
+      setViewerSwipeOffsetX(0);
+    }
+
+    viewerTouchStartRef.current = null;
+    viewerTouchAxisRef.current = null;
+  };
 
   useEffect(() => {
     if (!isViewerOpen) {
@@ -307,6 +437,10 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     return () => {
       if (snapTimeoutRef.current) {
         clearTimeout(snapTimeoutRef.current);
+      }
+
+      if (viewerSnapTimeoutRef.current) {
+        clearTimeout(viewerSnapTimeoutRef.current);
       }
     };
   }, []);
@@ -723,14 +857,53 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
                 </svg>
               </button>
 
-              <div className={styles.viewerMedia}>
-                <Image
-                  src={activeBride.photos[activePhotoIndex]}
-                  alt={`${activeBride.name} — фото ${activePhotoIndex + 1}`}
-                  fill
-                  sizes="(max-width: 900px) 92vw, 72vw"
-                  className={styles.viewerImage}
-                />
+              <div
+                className={styles.viewerMedia}
+                onTouchStart={handleViewerTouchStart}
+                onTouchMove={handleViewerTouchMove}
+                onTouchEnd={handleViewerTouchEnd}
+              >
+                <div
+                  className={styles.viewerTrack}
+                  style={
+                    {
+                      transform: `translateX(calc(-33.333333% + ${viewerSwipeOffsetX}px))`,
+                      transition: isViewerSwipeTransitionEnabled
+                        ? "transform 220ms cubic-bezier(0.22, 0.61, 0.36, 1)"
+                        : "none",
+                    } as CSSProperties
+                  }
+                >
+                  <div className={styles.viewerSlide}>
+                    <Image
+                      src={activeBride.photos[prevViewerPhotoIndex]}
+                      alt={`${activeBride.name} — фото ${prevViewerPhotoIndex + 1}`}
+                      fill
+                      sizes="(max-width: 900px) 92vw, 72vw"
+                      className={styles.viewerImage}
+                    />
+                  </div>
+
+                  <div className={styles.viewerSlide}>
+                    <Image
+                      src={activeBride.photos[activePhotoIndex]}
+                      alt={`${activeBride.name} — фото ${activePhotoIndex + 1}`}
+                      fill
+                      sizes="(max-width: 900px) 92vw, 72vw"
+                      className={styles.viewerImage}
+                    />
+                  </div>
+
+                  <div className={styles.viewerSlide}>
+                    <Image
+                      src={activeBride.photos[nextViewerPhotoIndex]}
+                      alt={`${activeBride.name} — фото ${nextViewerPhotoIndex + 1}`}
+                      fill
+                      sizes="(max-width: 900px) 92vw, 72vw"
+                      className={styles.viewerImage}
+                    />
+                  </div>
+                </div>
               </div>
 
               <button

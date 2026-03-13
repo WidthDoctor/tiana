@@ -232,6 +232,20 @@
   background: rgba(236, 236, 236, 0.95);
 }
 
+.viewerTrack {
+  display: flex;
+  width: 300%;
+  height: 100%;
+  will-change: transform;
+}
+
+.viewerSlide {
+  position: relative;
+  width: 33.333333%;
+  height: 100%;
+  flex: 0 0 33.333333%;
+}
+
 .viewerImage {
   object-fit: contain;
   object-position: center;
