@@ -595,8 +595,9 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     const deltaY = touch.clientY - start.y;
     const absX = Math.abs(deltaX);
     const absY = Math.abs(deltaY);
+    const gestureAxis = touchAxisRef.current ?? (absX >= absY ? "x" : "y");
 
-    if (touchAxisRef.current === "x") {
+    if (gestureAxis === "x") {
       const width = Math.max(feedWidthRef.current, 1);
       const threshold = width * 0.2;
 
@@ -604,7 +605,9 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
 
       if (absX > threshold) {
         const isNextPhoto = deltaX < 0;
-        const canNavigate = isNextPhoto ? canNextPhoto : canPrevPhoto;
+        const canNavigate = isNextPhoto
+          ? mobilePhotoIndex < mobilePhotoCount - 1
+          : mobilePhotoIndex > 0;
 
         if (canNavigate) {
           setMobileTrackOffsetX(isNextPhoto ? -width : width);
@@ -631,7 +634,7 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
       return;
     }
 
-    if (touchAxisRef.current === "y") {
+    if (gestureAxis === "y") {
       const height = Math.max(feedHeightRef.current, 1);
       const threshold = height * 0.16;
 
@@ -666,14 +669,6 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
       touchStartRef.current = null;
       touchAxisRef.current = null;
       return;
-    }
-
-    if (absY > 44) {
-      if (deltaY < 0) {
-        showNextBride();
-      } else {
-        showPrevBride();
-      }
     }
 
     touchStartRef.current = null;
