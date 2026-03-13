@@ -542,8 +542,8 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     }
 
     const deltaX = touch.clientX - start.x;
-    const deltaY = touch.clientY - start.y;
     const absX = Math.abs(deltaX);
+    const deltaY = touch.clientY - start.y;
     const absY = Math.abs(deltaY);
 
     if (!touchAxisRef.current && (absX > 8 || absY > 8)) {

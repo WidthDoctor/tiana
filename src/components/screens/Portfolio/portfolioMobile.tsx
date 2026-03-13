@@ -197,31 +197,34 @@ export default function PortfolioMobile({
                   </svg>
                 </button>
 
-                {canPrevPhoto ? (
+                <div className={styles.mobilePhotoNav}>
                   <button
                     type="button"
-                    className={`${styles.mobileArrow} ${styles.mobileArrowLeft}`}
+                    className={styles.mobilePhotoNavButton}
                     onClick={onPrevPhoto}
                     aria-label="Предыдущее фото"
+                    disabled={!canPrevPhoto}
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M14.7 5.3a1 1 0 0 1 0 1.4L9.4 12l5.3 5.3a1 1 0 0 1-1.4 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.4 0Z" />
-                    </svg>
+                    <span
+                      className={`${styles.mobilePhotoNavHint} ${styles.mobilePhotoNavHintLeft}`}
+                    >
+                      <span className={styles.mobilePhotoNavChevron} />
+                      <span className={styles.mobilePhotoNavChevron} />
+                    </span>
                   </button>
-                ) : null}
-
-                {canNextPhoto ? (
                   <button
                     type="button"
-                    className={`${styles.mobileArrow} ${styles.mobileArrowRight}`}
+                    className={styles.mobilePhotoNavButton}
                     onClick={onNextPhoto}
                     aria-label="Следующее фото"
+                    disabled={!canNextPhoto}
                   >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M9.3 5.3a1 1 0 0 1 1.4 0l6 6a1 1 0 0 1 0 1.4l-6 6a1 1 0 0 1-1.4-1.4l5.3-5.3-5.3-5.3a1 1 0 0 1 0-1.4Z" />
-                    </svg>
+                    <span className={styles.mobilePhotoNavHint}>
+                      <span className={styles.mobilePhotoNavChevron} />
+                      <span className={styles.mobilePhotoNavChevron} />
+                    </span>
                   </button>
-                ) : null}
+                </div>
               </div>
 
               <div className={styles.mobileScrollDownHint} aria-hidden="true">

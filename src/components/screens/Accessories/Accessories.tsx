@@ -6,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import type { TouchEvent } from "react";
 import styles from "./Accessories.module.css";
 import { DEFAULT_ACCESSORY_CATEGORIES } from "./defaultAccessories";
-import { ACCESSORIES_STORAGE_KEY, loadAccessoryCategories } from "./storage";
 import type { AccessoryCategory } from "./types";
 
 type AccessoriesProps = {
@@ -52,7 +51,7 @@ function normalizeImageSrc(src: string): string {
 export default function Accessories({ initialCategories }: AccessoriesProps) {
   const searchParams = useSearchParams();
   const [isAccessoriesOpen, setIsAccessoriesOpen] = useState(false);
-  const [categories, setCategories] = useState<AccessoryCategory[]>(
+  const [categories] = useState<AccessoryCategory[]>(
     initialCategories.length > 0
       ? initialCategories
       : DEFAULT_ACCESSORY_CATEGORIES,
@@ -126,40 +125,6 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
   const nextZoomImageSrc = canNextZoomImage
     ? zoomImages[safeZoomImageIndex + 1]
     : zoomImageSrc;
-
-  useEffect(() => {
-    const sync = () => {
-      const raw = window.localStorage.getItem(ACCESSORIES_STORAGE_KEY);
-
-      if (!raw) {
-        return;
-      }
-
-      setCategories(loadAccessoryCategories());
-    };
-
-    sync();
-
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key && event.key !== "tiana:accessories-categories") {
-        return;
-      }
-
-      sync();
-    };
-
-    const handleUpdated = () => {
-      sync();
-    };
-
-    window.addEventListener("storage", handleStorage);
-    window.addEventListener("tiana:accessories-updated", handleUpdated);
-
-    return () => {
-      window.removeEventListener("storage", handleStorage);
-      window.removeEventListener("tiana:accessories-updated", handleUpdated);
-    };
-  }, []);
 
   const openAccessories = useCallback(() => {
     setIsAccessoriesOpen(true);
