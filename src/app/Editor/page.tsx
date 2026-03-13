@@ -1,5 +1,5 @@
-import Editor from "../../components/screens/Journal/Editor/Editor";
+import EditorClient from "../../components/screens/Editor/EditorClient";
 
 export default function EditorPage() {
-  return <Editor />;
+  return <EditorClient />;
 }

@@ -19,6 +19,11 @@ body.portfolio-open {
   overflow-y: hidden;
 }
 
+html.accessories-open,
+body.accessories-open {
+  overflow-y: hidden;
+}
+
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;

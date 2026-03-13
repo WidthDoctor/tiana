@@ -1,0 +1,10 @@
+{
+  "id": "glitter",
+  "title": "С бусинками и гитлером",
+  "price": "180 BYN",
+  "images": [
+    "/accessories/fata/items/glitter/image-1.png",
+    "/accessories/fata/items/glitter/image-2.jpg",
+    "/accessories/fata/items/glitter/image-3.jpg"
+  ]
+}

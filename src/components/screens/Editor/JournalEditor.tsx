@@ -4,18 +4,18 @@ import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useRef } from "react";
 import type { KeyboardEvent } from "react";
-import styles from "./Editor.module.css";
-import { DEFAULT_JOURNAL_POSTS } from "../posts/defaultPosts";
+import styles from "./JournalEditor.module.css";
+import { DEFAULT_JOURNAL_POSTS } from "../Journal/posts/defaultPosts";
 import {
   type PostsDirectoryHandle,
   syncPostsToDirectory,
-} from "../posts/folderStorage";
+} from "../Journal/posts/folderStorage";
 import {
   loadJournalPosts,
   resetJournalPosts,
   saveJournalPosts,
-} from "../posts/storage";
-import type { JournalPost, JournalPostSection } from "../posts/types";
+} from "../Journal/posts/storage";
+import type { JournalPost, JournalPostSection } from "../Journal/posts/types";
 
 function createEmptyPost(): JournalPost {
   return {

@@ -5,7 +5,11 @@ import styles from "../Home/NavbarMini.module.css";
 
 const MOBILE_MAIN_NAV_LINKS = [
   { href: "/?section=portfolio", label: "Портфолио", isPortfolio: true },
-  { href: "/accessories", label: "Аксессуары" },
+  {
+    href: "/?section=accessories",
+    label: "Аксессуары",
+    isAccessories: true,
+  },
   { href: "/atelier", label: "Ателье" },
   { href: "/contacts", label: "Контакты" },
   { href: "/?section=journal", label: "Журнал", isJournal: true },
@@ -20,6 +24,7 @@ type SelectMobileProps = {
   onMenuSelect: (menuId: MenuContentItem["id"]) => void;
   onPortfolioOpen: () => void;
   onJournalOpen: () => void;
+  onAccessoriesOpen: () => void;
   onCloseDrawer: () => void;
 };
 
@@ -33,12 +38,14 @@ export default function SelectMobile({
   onMenuSelect,
   onPortfolioOpen,
   onJournalOpen,
+  onAccessoriesOpen,
   onCloseDrawer,
 }: SelectMobileProps) {
   const handleMainNavClick = (
     event: MouseEvent<HTMLAnchorElement>,
     isPortfolio?: boolean,
     isJournal?: boolean,
+    isAccessories?: boolean,
   ) => {
     onCloseDrawer();
 
@@ -51,6 +58,12 @@ export default function SelectMobile({
     if (isJournal) {
       event.preventDefault();
       onJournalOpen();
+      return;
+    }
+
+    if (isAccessories) {
+      event.preventDefault();
+      onAccessoriesOpen();
     }
   };
 
@@ -68,6 +81,7 @@ export default function SelectMobile({
                     event,
                     "isPortfolio" in item ? item.isPortfolio : undefined,
                     "isJournal" in item ? item.isJournal : undefined,
+                    "isAccessories" in item ? item.isAccessories : undefined,
                   )
                 }
               >

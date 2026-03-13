@@ -1,12 +1,34 @@
 import type { JournalPost } from "./types";
 
+type WritableLike = {
+  write: (data: string | Uint8Array) => Promise<void>;
+  close: () => Promise<void>;
+};
+
+type FileLike = {
+  text: () => Promise<string>;
+};
+
+type FileHandleLike = {
+  createWritable: () => Promise<WritableLike>;
+  getFile: () => Promise<FileLike>;
+  kind?: "file";
+};
+
+type DirectoryEntryLike = {
+  kind?: "file" | "directory";
+};
+
 export type PostsDirectoryHandle = {
-  getFileHandle: (name: string, options?: { create?: boolean }) => Promise<any>;
+  getFileHandle: (
+    name: string,
+    options?: { create?: boolean },
+  ) => Promise<FileHandleLike>;
   getDirectoryHandle: (
     name: string,
     options?: { create?: boolean },
-  ) => Promise<any>;
-  entries?: () => AsyncIterable<[string, any]>;
+  ) => Promise<PostsDirectoryHandle>;
+  entries?: () => AsyncIterable<[string, DirectoryEntryLike]>;
   removeEntry?: (
     name: string,
     options?: { recursive?: boolean },
@@ -84,13 +106,13 @@ function extensionFromDataUrl(dataUrl: string): string {
   return "jpg";
 }
 
-async function writeJsonFile(fileHandle: any, payload: unknown) {
+async function writeJsonFile(fileHandle: FileHandleLike, payload: unknown) {
   const writable = await fileHandle.createWritable();
   await writable.write(JSON.stringify(payload, null, 2));
   await writable.close();
 }
 
-async function readJsonFile(fileHandle: any) {
+async function readJsonFile(fileHandle: FileHandleLike) {
   const file = await fileHandle.getFile();
   const text = await file.text();
   return JSON.parse(text);

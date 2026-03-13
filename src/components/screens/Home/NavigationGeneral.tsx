@@ -26,6 +26,13 @@ export default function NavigationGeneral({
     window.dispatchEvent(new CustomEvent("tiana:open-journal"));
   };
 
+  const handleAccessoriesClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+  ): void => {
+    event.preventDefault();
+    window.dispatchEvent(new CustomEvent("tiana:open-accessories"));
+  };
+
   return (
     <nav
       className={`${styles.navigation} ${cormorantGaramond.className}`}
@@ -39,7 +46,9 @@ export default function NavigationGeneral({
             </Link>
           </li>
           <li>
-            <Link href="/accessories">Аксессуары</Link>
+            <Link href="/?section=accessories" onClick={handleAccessoriesClick}>
+              Аксессуары
+            </Link>
           </li>
         </ul>
 

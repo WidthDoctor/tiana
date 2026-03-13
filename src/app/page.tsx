@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Home from "../components/screens/Home/Home";
+import { getAccessoryCategoriesFromPublic } from "../lib/accessories";
+import { getJournalPostsFromPublic } from "../lib/journal";
 import { getPortfolioBrides } from "../lib/portfolio";
 import { brandDescription, brandName, siteUrl } from "./seo";
 
@@ -15,7 +17,12 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function Page() {
-  const portfolioBrides = await getPortfolioBrides();
+  const [portfolioBrides, journalPosts, accessoryCategories] =
+    await Promise.all([
+      getPortfolioBrides(),
+      getJournalPostsFromPublic(),
+      getAccessoryCategoriesFromPublic(),
+    ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -44,7 +51,11 @@ export default async function Page() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <Suspense fallback={null}>
-        <Home portfolioBrides={portfolioBrides} />
+        <Home
+          portfolioBrides={portfolioBrides}
+          journalPosts={journalPosts}
+          accessoryCategories={accessoryCategories}
+        />
       </Suspense>
     </>
   );

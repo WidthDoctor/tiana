@@ -1,0 +1,38 @@
+.wrapper {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
+
+.tabsBar {
+  position: sticky;
+  top: 0;
+  z-index: 120;
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(247, 247, 247, 0.96);
+  backdrop-filter: blur(4px);
+}
+
+.tabButton {
+  min-height: 36px;
+  border-radius: 8px;
+  padding: 0 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabButtonActive {
+  border-color: rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.content {
+  min-height: 0;
+}

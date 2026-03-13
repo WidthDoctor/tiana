@@ -3,18 +3,27 @@
 import Link from "next/link";
 import type { MouseEvent } from "react";
 import { erasLight } from "../../../app/fonts";
+import type { AccessoryCategory } from "../Accessories/types";
+import type { JournalPost } from "../Journal/posts/types";
 import type { PortfolioBride } from "../../../lib/portfolio";
 import styles from "./HomeStyles.module.css";
 import NavigationGeneral from "./NavigationGeneral";
 import Portfolio from "../Portfolio/portfolio";
 import Journal from "../Journal/journal";
+import Accessories from "../Accessories/Accessories";
 import Select from "../selector";
 
 type HomeProps = {
   portfolioBrides: PortfolioBride[];
+  journalPosts: JournalPost[];
+  accessoryCategories: AccessoryCategory[];
 };
 
-export default function Home({ portfolioBrides }: HomeProps) {
+export default function Home({
+  portfolioBrides,
+  journalPosts,
+  accessoryCategories,
+}: HomeProps) {
   const handleHeroPortfolioClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     window.dispatchEvent(new CustomEvent("tiana:open-portfolio"));
@@ -54,7 +63,8 @@ export default function Home({ portfolioBrides }: HomeProps) {
       </section>
 
       <Portfolio portfolioBrides={portfolioBrides} />
-      <Journal />
+      <Accessories initialCategories={accessoryCategories} />
+      <Journal initialPosts={journalPosts} />
     </main>
   );
 }

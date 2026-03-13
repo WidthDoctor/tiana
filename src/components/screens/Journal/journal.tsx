@@ -7,9 +7,12 @@ import type { ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import styles from "./Journal.module.css";
 import { DEFAULT_JOURNAL_POSTS } from "./posts/defaultPosts";
-import { loadPostsFromPublicFolders } from "./posts/folderStorage";
-import { loadJournalPosts } from "./posts/storage";
+import { JOURNAL_POSTS_STORAGE_KEY, loadJournalPosts } from "./posts/storage";
 import type { JournalPost } from "./posts/types";
+
+type JournalProps = {
+  initialPosts: JournalPost[];
+};
 
 function renderFormattedText(text: string): ReactNode[] {
   const nodes: ReactNode[] = [];
@@ -97,10 +100,12 @@ function normalizeImageSrc(src: string): string {
   return `${basePath}/${src.replace(/^\/+/, "")}`;
 }
 
-export default function Journal() {
+export default function Journal({ initialPosts }: JournalProps) {
   const searchParams = useSearchParams();
   const [isJournalOpen, setIsJournalOpen] = useState(false);
-  const [posts, setPosts] = useState<JournalPost[]>(DEFAULT_JOURNAL_POSTS);
+  const [posts, setPosts] = useState<JournalPost[]>(
+    initialPosts.length > 0 ? initialPosts : DEFAULT_JOURNAL_POSTS,
+  );
   const [activePostIndex, setActivePostIndex] = useState<number | null>(null);
   const [isImageZoomOpen, setIsImageZoomOpen] = useState(false);
   const [zoomImageIndex, setZoomImageIndex] = useState(0);
@@ -127,6 +132,12 @@ export default function Journal() {
   }, []);
   useEffect(() => {
     const syncPosts = () => {
+      const raw = window.localStorage.getItem(JOURNAL_POSTS_STORAGE_KEY);
+
+      if (!raw) {
+        return;
+      }
+
       setPosts(loadJournalPosts());
     };
 
@@ -150,37 +161,6 @@ export default function Journal() {
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("tiana:journal-posts-updated", handleUpdated);
-    };
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadFromFolders = async () => {
-      try {
-        const folderPosts = await loadPostsFromPublicFolders();
-
-        if (!isMounted) {
-          return;
-        }
-
-        if (folderPosts.length > 0) {
-          setPosts(folderPosts);
-          return;
-        }
-      } catch {
-        // fallback to local storage/defaults below
-      }
-
-      if (isMounted) {
-        setPosts(loadJournalPosts());
-      }
-    };
-
-    loadFromFolders();
-
-    return () => {
-      isMounted = false;
     };
   }, []);
 
@@ -235,12 +215,21 @@ export default function Journal() {
       closeJournal();
     };
 
+    const handleAccessoriesOpen = () => {
+      closeJournal();
+    };
+
     window.addEventListener("tiana:logo-close-content", handleLogoClose);
     window.addEventListener("tiana:open-portfolio", handlePortfolioOpen);
+    window.addEventListener("tiana:open-accessories", handleAccessoriesOpen);
 
     return () => {
       window.removeEventListener("tiana:logo-close-content", handleLogoClose);
       window.removeEventListener("tiana:open-portfolio", handlePortfolioOpen);
+      window.removeEventListener(
+        "tiana:open-accessories",
+        handleAccessoriesOpen,
+      );
     };
   }, [closeJournal]);
 
@@ -256,8 +245,16 @@ export default function Journal() {
     };
   }, [isJournalOpen]);
 
+  const safeActivePostIndex = useMemo(() => {
+    if (activePostIndex === null || posts.length === 0) {
+      return null;
+    }
+
+    return Math.min(activePostIndex, posts.length - 1);
+  }, [activePostIndex, posts]);
+
   const activePost =
-    activePostIndex !== null ? posts[activePostIndex] : undefined;
+    safeActivePostIndex !== null ? posts[safeActivePostIndex] : undefined;
   const isArticleOpen = Boolean(activePost);
   const zoomImages = useMemo(() => {
     if (!activePost) {
@@ -271,14 +268,22 @@ export default function Journal() {
     return Array.from(new Set(sources));
   }, [activePost]);
 
-  const zoomImageSrc = zoomImages[zoomImageIndex] ?? null;
-  const canPrevZoomImage = zoomImageIndex > 0;
-  const canNextZoomImage = zoomImageIndex < zoomImages.length - 1;
+  const safeZoomImageIndex = useMemo(() => {
+    if (zoomImages.length === 0) {
+      return 0;
+    }
+
+    return Math.min(zoomImageIndex, zoomImages.length - 1);
+  }, [zoomImageIndex, zoomImages]);
+
+  const zoomImageSrc = zoomImages[safeZoomImageIndex] ?? null;
+  const canPrevZoomImage = safeZoomImageIndex > 0;
+  const canNextZoomImage = safeZoomImageIndex < zoomImages.length - 1;
   const prevZoomImageSrc = canPrevZoomImage
-    ? zoomImages[zoomImageIndex - 1]
+    ? zoomImages[safeZoomImageIndex - 1]
     : zoomImageSrc;
   const nextZoomImageSrc = canNextZoomImage
-    ? zoomImages[zoomImageIndex + 1]
+    ? zoomImages[safeZoomImageIndex + 1]
     : zoomImageSrc;
 
   useEffect(() => {
@@ -415,6 +420,8 @@ export default function Journal() {
 
   const handleOpenPost = (postIndex: number) => {
     setActivePostIndex(postIndex);
+    setZoomSwipeOffsetX(0);
+    setIsZoomSwipeTransitionEnabled(false);
   };
 
   const handleCloseArticle = () => {
@@ -564,36 +571,23 @@ export default function Journal() {
   };
 
   const handleNextPost = () => {
-    if (activePostIndex === null || posts.length === 0) {
+    if (safeActivePostIndex === null || posts.length === 0) {
       return;
     }
 
     shouldScrollToTopOnPostChangeRef.current = true;
-    setActivePostIndex((activePostIndex + 1) % posts.length);
+    setActivePostIndex((safeActivePostIndex + 1) % posts.length);
+    setZoomSwipeOffsetX(0);
+    setIsZoomSwipeTransitionEnabled(false);
   };
 
   const nextPostTitle = useMemo(() => {
-    if (activePostIndex === null || posts.length === 0) {
+    if (safeActivePostIndex === null || posts.length === 0) {
       return "";
     }
 
-    return posts[(activePostIndex + 1) % posts.length]?.title;
-  }, [activePostIndex, posts]);
-
-  useEffect(() => {
-    if (posts.length === 0) {
-      setActivePostIndex(null);
-      return;
-    }
-
-    setActivePostIndex((prev) => {
-      if (prev === null) {
-        return prev;
-      }
-
-      return Math.min(prev, posts.length - 1);
-    });
-  }, [posts]);
+    return posts[(safeActivePostIndex + 1) % posts.length]?.title;
+  }, [posts, safeActivePostIndex]);
 
   useEffect(() => {
     if (!shouldScrollToTopOnPostChangeRef.current) {
@@ -602,17 +596,7 @@ export default function Journal() {
 
     shouldScrollToTopOnPostChangeRef.current = false;
     articleContentWrapRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [activePostIndex]);
-
-  useEffect(() => {
-    if (zoomImages.length === 0) {
-      setZoomImageIndex(0);
-      return;
-    }
-
-    setZoomImageIndex((previous) => Math.min(previous, zoomImages.length - 1));
-    setZoomSwipeOffsetX(0);
-  }, [zoomImages]);
+  }, [safeActivePostIndex]);
 
   useEffect(() => {
     return () => {
@@ -688,8 +672,12 @@ export default function Journal() {
                 <button
                   key={post.id}
                   type="button"
-                  className={`${styles.sidebarPostButton} ${postIndex === activePostIndex ? styles.sidebarPostButtonActive : ""}`}
-                  onClick={() => setActivePostIndex(postIndex)}
+                  className={`${styles.sidebarPostButton} ${postIndex === safeActivePostIndex ? styles.sidebarPostButtonActive : ""}`}
+                  onClick={() => {
+                    setActivePostIndex(postIndex);
+                    setZoomSwipeOffsetX(0);
+                    setIsZoomSwipeTransitionEnabled(false);
+                  }}
                   aria-label={`Перейти к статье: ${post.title}`}
                 >
                   {renderFormattedText(post.title)}
@@ -911,7 +899,7 @@ export default function Journal() {
               </div>
 
               <p className={styles.imageZoomCounter}>
-                {zoomImageIndex + 1} / {zoomImages.length}
+                {safeZoomImageIndex + 1} / {zoomImages.length}
               </p>
             </div>
           </div>
