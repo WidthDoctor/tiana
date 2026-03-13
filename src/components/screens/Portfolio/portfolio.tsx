@@ -572,11 +572,11 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
     let adjustedDeltaX = deltaX;
 
     if (isFirstPhoto && adjustedDeltaX > 0) {
-      adjustedDeltaX = 0;
+      adjustedDeltaX *= 0.18;
     }
 
     if (isLastPhoto && adjustedDeltaX < 0) {
-      adjustedDeltaX = 0;
+      adjustedDeltaX *= 0.18;
     }
 
     const clampedDeltaX = Math.max(Math.min(adjustedDeltaX, width), -width);
@@ -604,37 +604,25 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
 
       if (absX > threshold) {
         const isNextPhoto = deltaX < 0;
-        const canNavigate = isNextPhoto
-          ? mobilePhotoIndex < mobilePhotoCount - 1
-          : mobilePhotoIndex > 0;
+        const canNavigate = isNextPhoto ? canNextPhoto : canPrevPhoto;
 
-        if (!canNavigate) {
-          setMobileTrackOffsetX(0);
+        if (canNavigate) {
+          setMobileTrackOffsetX(isNextPhoto ? -width : width);
+
+          snapTimeoutRef.current = setTimeout(() => {
+            setMobilePhotoIndex((previous) =>
+              isNextPhoto
+                ? Math.min(previous + 1, mobilePhotoCount - 1)
+                : Math.max(previous - 1, 0),
+            );
+            setIsMobileTrackTransitionEnabled(false);
+            setMobileTrackOffsetX(0);
+          }, 180);
+
           touchStartRef.current = null;
           touchAxisRef.current = null;
           return;
         }
-
-        setMobileTrackOffsetX(isNextPhoto ? -width : width);
-
-        snapTimeoutRef.current = setTimeout(() => {
-          if (isNextPhoto) {
-            showNextPhoto();
-          } else {
-            showPrevPhoto();
-          }
-
-          setIsMobileTrackTransitionEnabled(false);
-          setMobileTrackOffsetX(0);
-
-          requestAnimationFrame(() => {
-            setIsMobileTrackTransitionEnabled(true);
-          });
-        }, 180);
-
-        touchStartRef.current = null;
-        touchAxisRef.current = null;
-        return;
       }
 
       setMobileTrackOffsetX(0);
