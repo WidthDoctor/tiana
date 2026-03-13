@@ -125,13 +125,14 @@
 .categoryPanel {
   position: relative;
   width: calc(100vw - 30px);
-  height: calc(100vh - 30px);
+  height: calc(100svh - 30px);
+  height: calc(100dvh - 30px);
   margin: 15px auto;
   border-radius: 18px;
   overflow: auto;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(0, 0, 0, 0.12);
-  padding: 16px;
+  padding: 16px 16px calc(22px + env(safe-area-inset-bottom, 0px));
   display: grid;
   align-content: start;
   gap: 14px;
@@ -592,9 +593,10 @@
 @media (max-width: 520px) {
   .categoryPanel {
     width: calc(100vw - 18px);
-    height: calc(100vh - 18px);
+    height: calc(100svh - 18px);
+    height: calc(100dvh - 18px);
     margin: 9px auto;
-    padding: 10px;
+    padding: 10px 10px calc(20px + env(safe-area-inset-bottom, 0px));
   }
 
   .productGrid {
