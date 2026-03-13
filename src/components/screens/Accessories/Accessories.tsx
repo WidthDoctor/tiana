@@ -57,6 +57,9 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
       ? initialCategories
       : DEFAULT_ACCESSORY_CATEGORIES,
   );
+  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState<
+    number | null
+  >(null);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState<number | null>(
     null,
   );
@@ -331,6 +334,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
       }
 
       if (activeCategory) {
+        setSelectedCategoryIndex(activeCategoryIndex);
         setActiveCategoryIndex(null);
         setActiveItemIndex(null);
         setIsImageZoomOpen(false);
@@ -356,9 +360,16 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [activeCategory, closeAccessories, isAccessoriesOpen, isImageZoomOpen]);
+  }, [
+    activeCategory,
+    activeCategoryIndex,
+    closeAccessories,
+    isAccessoriesOpen,
+    isImageZoomOpen,
+  ]);
 
   const handleOpenCategory = (categoryIndex: number) => {
+    setSelectedCategoryIndex(categoryIndex);
     setActiveCategoryIndex(categoryIndex);
     setActiveItemIndex(null);
     setIsImageZoomOpen(false);
@@ -368,6 +379,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
   };
 
   const handleBackToCategories = () => {
+    setSelectedCategoryIndex(activeCategoryIndex);
     setActiveCategoryIndex(null);
     setActiveItemIndex(null);
     setIsImageZoomOpen(false);
@@ -575,7 +587,7 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
             <article key={category.id} className={styles.accessoryCategoryCard}>
               <button
                 type="button"
-                className={styles.accessoryCategoryButton}
+                className={`${styles.accessoryCategoryButton} ${selectedCategoryIndex === categoryIndex || activeCategoryIndex === categoryIndex ? styles.accessoryCategoryButtonActive : ""}`}
                 onClick={() => handleOpenCategory(categoryIndex)}
                 aria-label={`Открыть категорию: ${category.title}`}
               >

@@ -224,10 +224,19 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
       closePortfolio();
     };
 
+    const handleAccessoriesOpen = () => {
+      closePortfolio();
+    };
+
     window.addEventListener("tiana:open-journal", handleJournalOpen);
+    window.addEventListener("tiana:open-accessories", handleAccessoriesOpen);
 
     return () => {
       window.removeEventListener("tiana:open-journal", handleJournalOpen);
+      window.removeEventListener(
+        "tiana:open-accessories",
+        handleAccessoriesOpen,
+      );
     };
   }, [closePortfolio]);
 
