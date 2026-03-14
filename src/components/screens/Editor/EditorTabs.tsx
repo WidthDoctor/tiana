@@ -3,9 +3,10 @@
 import { useState } from "react";
 import JournalEditor from "./JournalEditor";
 import AccessoriesEditor from "./AccessoriesEditor";
+import FaqEditor from "./FaqEditor";
 import styles from "./EditorTabs.module.css";
 
-type EditorTab = "journal" | "accessories";
+type EditorTab = "journal" | "accessories" | "faq";
 
 export default function EditorTabs() {
   const [activeTab, setActiveTab] = useState<EditorTab>("journal");
@@ -27,10 +28,19 @@ export default function EditorTabs() {
         >
           акксесуары
         </button>
+        <button
+          type="button"
+          className={`${styles.tabButton} ${activeTab === "faq" ? styles.tabButtonActive : ""}`}
+          onClick={() => setActiveTab("faq")}
+        >
+          вопросы
+        </button>
       </div>
 
       <div className={styles.content}>
-        {activeTab === "journal" ? <JournalEditor /> : <AccessoriesEditor />}
+        {activeTab === "journal" ? <JournalEditor /> : null}
+        {activeTab === "accessories" ? <AccessoriesEditor /> : null}
+        {activeTab === "faq" ? <FaqEditor /> : null}
       </div>
     </div>
   );

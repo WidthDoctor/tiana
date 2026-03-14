@@ -6,6 +6,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cormorantGaramond, erasLight } from "../../../app/fonts";
+import Faq from "../Faq/Faq";
+import type { FaqItem } from "../Faq/types";
 import styles from "../Home/NavbarMini.module.css";
 import { MENU_CONTENT_ITEMS } from "./menuContentConfig";
 import type { MenuContentItem } from "./menuContentConfig";
@@ -33,7 +35,11 @@ function withBasePath(src: string): string {
   return `${BASE_PATH}${normalizedSrc}`;
 }
 
-export default function Select() {
+type SelectProps = {
+  faqItems: FaqItem[];
+};
+
+export default function Select({ faqItems }: SelectProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -743,6 +749,10 @@ export default function Select() {
   const renderMenuContent = (menu: MenuContentItem | undefined) => {
     if (!menu) {
       return null;
+    }
+
+    if (menu.id === "faq") {
+      return <Faq initialItems={faqItems} embedded />;
     }
 
     return (

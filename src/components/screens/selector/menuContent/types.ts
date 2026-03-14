@@ -11,8 +11,8 @@ export interface MenuContentItem {
   id: string;
   label: string;
   menuSection: MenuSection;
-  contentTitle: string;
-  contentText: string;
-  imageSrc: string;
+  contentTitle?: string;
+  contentText?: string;
+  imageSrc?: string;
   contentBlocks?: MenuContentBlock[];
 }

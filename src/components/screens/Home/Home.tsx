@@ -6,6 +6,7 @@ import { erasLight } from "../../../app/fonts";
 import type { AccessoryCategory } from "../Accessories/types";
 import type { JournalPost } from "../Journal/posts/types";
 import type { PortfolioBride } from "../../../lib/portfolio";
+import type { FaqItem } from "../Faq/types";
 import styles from "./HomeStyles.module.css";
 import NavigationGeneral from "./NavigationGeneral";
 import Portfolio from "../Portfolio/portfolio";
@@ -17,12 +18,14 @@ type HomeProps = {
   portfolioBrides: PortfolioBride[];
   journalPosts: JournalPost[];
   accessoryCategories: AccessoryCategory[];
+  faqItems: FaqItem[];
 };
 
 export default function Home({
   portfolioBrides,
   journalPosts,
   accessoryCategories,
+  faqItems,
 }: HomeProps) {
   const handleHeroPortfolioClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -32,7 +35,7 @@ export default function Home({
   return (
     <main className={styles.container}>
       <header className={styles.header}>
-        <Select />
+        <Select faqItems={faqItems} />
         <NavigationGeneral logoClassName={erasLight.className} />
       </header>
 

@@ -114,12 +114,14 @@ export default function Editor() {
   }, [posts.length]);
 
   const updatePost = (nextPost: JournalPost) => {
-    if (!activePost) {
+    if (activePostIndex < 0) {
       return;
     }
 
     setPosts((previous) =>
-      previous.map((post) => (post.id === activePost.id ? nextPost : post)),
+      previous.map((post, index) =>
+        index === activePostIndex ? nextPost : post,
+      ),
     );
   };
 
@@ -440,6 +442,15 @@ export default function Editor() {
       };
     });
 
+    const ids = normalized.map((post) => post.id);
+    const hasDuplicateIds = new Set(ids).size !== ids.length;
+
+    if (hasDuplicateIds) {
+      window.alert("есть одинаковые ID ТАК ДЕЛАТЬ КУРВА НЕЛЬЗЯ");
+      setStatusText("Сохранение отменено: найдены одинаковые ID.");
+      return;
+    }
+
     saveJournalPosts(normalized);
     setPosts(normalized);
     setActivePostId((current) =>
@@ -491,9 +502,9 @@ export default function Editor() {
         </div>
 
         <div className={styles.list}>
-          {posts.map((post) => (
+          {posts.map((post, index) => (
             <button
-              key={post.id}
+              key={`${post.id}-${index}`}
               type="button"
               className={`${styles.postItem} ${post.id === activePostId ? styles.postItemActive : ""}`}
               onClick={() => setActivePostId(post.id)}

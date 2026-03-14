@@ -85,13 +85,13 @@ export default function AccessoriesEditor() {
   }, [categories.length]);
 
   const updateCategory = (nextCategory: AccessoryCategory) => {
-    if (!activeCategory) {
+    if (activeCategoryIndex < 0) {
       return;
     }
 
     setCategories((previous) =>
-      previous.map((category) =>
-        category.id === activeCategory.id ? nextCategory : category,
+      previous.map((category, index) =>
+        index === activeCategoryIndex ? nextCategory : category,
       ),
     );
   };
@@ -362,6 +362,21 @@ export default function AccessoriesEditor() {
             ],
     }));
 
+    const categoryIds = normalized.map((category) => category.id);
+    const hasDuplicateCategoryIds =
+      new Set(categoryIds).size !== categoryIds.length;
+
+    const hasDuplicateItemIds = normalized.some((category) => {
+      const itemIds = category.items.map((item) => item.id);
+      return new Set(itemIds).size !== itemIds.length;
+    });
+
+    if (hasDuplicateCategoryIds || hasDuplicateItemIds) {
+      window.alert("есть одинаковые ID ТАК ДЕЛАТЬ КУРВА НЕЛЬЗЯ");
+      setStatusText("Сохранение отменено: найдены одинаковые ID.");
+      return;
+    }
+
     saveAccessoryCategories(normalized);
     setCategories(normalized);
     setActiveCategoryId((current) =>
@@ -421,9 +436,9 @@ export default function AccessoriesEditor() {
         </div>
 
         <div className={styles.list}>
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <button
-              key={category.id}
+              key={`${category.id}-${index}`}
               type="button"
               className={`${styles.postItem} ${category.id === activeCategoryId ? styles.postItemActive : ""}`}
               onClick={() => setActiveCategoryId(category.id)}
@@ -590,12 +605,13 @@ export default function AccessoriesEditor() {
                       <span>ID товара</span>
                       <input
                         value={item.id}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          const nextId = event.target.value;
                           updateItem(itemIndex, {
                             ...item,
-                            id: event.target.value,
-                          })
-                        }
+                            id: nextId,
+                          });
+                        }}
                       />
                     </label>
 
