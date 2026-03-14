@@ -101,9 +101,8 @@ export default function Faq({ initialItems, embedded = false }: FaqProps) {
                 <span className={styles.triggerText}>{item.question}</span>
                 <span
                   className={`${styles.marker} ${isOpen ? styles.markerOpen : ""}`}
-                >
-                  {isOpen ? "−" : "+"}
-                </span>
+                  aria-hidden="true"
+                />
               </button>
 
               <div

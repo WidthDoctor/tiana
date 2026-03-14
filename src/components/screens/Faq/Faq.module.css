@@ -86,16 +86,12 @@
 }
 
 .marker {
+  position: relative;
   width: 22px;
   height: 22px;
   border-radius: 999px;
   border: 1px solid rgba(0, 0, 0, 0.24);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.76);
+  display: inline-block;
   flex-shrink: 0;
   transition:
     transform 0.3s ease,
@@ -104,10 +100,39 @@
     color 0.24s ease;
 }
 
+.marker::before,
+.marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.76);
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 0.22s ease,
+    background-color 0.24s ease;
+}
+
+.marker::after {
+  width: 1.5px;
+  height: 10px;
+}
+
 .markerOpen {
   transform: rotate(180deg);
   border-color: rgba(255, 163, 209, 0.86);
-  color: rgba(255, 117, 191, 0.96);
+}
+
+.markerOpen::before,
+.markerOpen::after {
+  background: rgba(255, 117, 191, 0.96);
+}
+
+.markerOpen::after {
+  opacity: 0;
 }
 
 .answerWrap {
