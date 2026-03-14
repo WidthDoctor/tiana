@@ -474,6 +474,7 @@ export default function Select({ faqItems }: SelectProps) {
   const displayedMenu: MenuContentItem | undefined =
     MENU_CONTENT_ITEMS.find((item) => item.id === displayedMenuId) ??
     MENU_CONTENT_ITEMS[0];
+  const shouldShowMobileSwipeHint = displayedMenu?.id !== "faq";
   const displayedMenuIndex = MENU_CONTENT_ITEMS.findIndex(
     (item) => item.id === displayedMenuId,
   );
@@ -931,10 +932,12 @@ export default function Select({ faqItems }: SelectProps) {
             onTouchMove={handleContentTouchMove}
             onTouchEnd={handleContentTouchEnd}
           >
-            <div className={styles.mobileSwipeHint} aria-hidden="true">
-              <span className={styles.mobileSwipeChevron} />
-              <span className={styles.mobileSwipeChevron} />
-            </div>
+            {shouldShowMobileSwipeHint ? (
+              <div className={styles.mobileSwipeHint} aria-hidden="true">
+                <span className={styles.mobileSwipeChevron} />
+                <span className={styles.mobileSwipeChevron} />
+              </div>
+            ) : null}
 
             <div
               ref={contentSwipeViewportRef}
