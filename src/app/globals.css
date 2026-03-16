@@ -24,6 +24,11 @@ body.accessories-open {
   overflow-y: hidden;
 }
 
+html.appointment-open,
+body.appointment-open {
+  overflow-y: hidden;
+}
+
 code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;

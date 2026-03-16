@@ -6,7 +6,7 @@ const basePath = isGithubActions && repositoryName ? `/${repositoryName}` : "";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  output: "export",
+  output: isGithubActions ? "export" : undefined,
   env: {
     NEXT_PUBLIC_BASE_PATH: basePath,
   },

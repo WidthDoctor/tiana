@@ -13,7 +13,11 @@ const MOBILE_MAIN_NAV_LINKS = [
   { href: "/atelier", label: "Ателье" },
   { href: "/contacts", label: "Контакты" },
   { href: "/?section=journal", label: "Журнал", isJournal: true },
-  { href: "/appointment", label: "Записаться на приём" },
+  {
+    href: "/?section=appointment",
+    label: "Записаться на приём",
+    isAppointment: true,
+  },
 ] as const;
 
 type SelectMobileProps = {
@@ -25,6 +29,7 @@ type SelectMobileProps = {
   onPortfolioOpen: () => void;
   onJournalOpen: () => void;
   onAccessoriesOpen: () => void;
+  onAppointmentOpen: () => void;
   onCloseDrawer: () => void;
 };
 
@@ -39,6 +44,7 @@ export default function SelectMobile({
   onPortfolioOpen,
   onJournalOpen,
   onAccessoriesOpen,
+  onAppointmentOpen,
   onCloseDrawer,
 }: SelectMobileProps) {
   const handleMainNavClick = (
@@ -46,6 +52,7 @@ export default function SelectMobile({
     isPortfolio?: boolean,
     isJournal?: boolean,
     isAccessories?: boolean,
+    isAppointment?: boolean,
   ) => {
     onCloseDrawer();
 
@@ -64,6 +71,12 @@ export default function SelectMobile({
     if (isAccessories) {
       event.preventDefault();
       onAccessoriesOpen();
+      return;
+    }
+
+    if (isAppointment) {
+      event.preventDefault();
+      onAppointmentOpen();
     }
   };
 
@@ -82,6 +95,7 @@ export default function SelectMobile({
                     "isPortfolio" in item ? item.isPortfolio : undefined,
                     "isJournal" in item ? item.isJournal : undefined,
                     "isAccessories" in item ? item.isAccessories : undefined,
+                    "isAppointment" in item ? item.isAppointment : undefined,
                   )
                 }
               >

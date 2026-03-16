@@ -33,6 +33,13 @@ export default function NavigationGeneral({
     window.dispatchEvent(new CustomEvent("tiana:open-accessories"));
   };
 
+  const handleAppointmentClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+  ): void => {
+    event.preventDefault();
+    window.dispatchEvent(new CustomEvent("tiana:open-appointment"));
+  };
+
   return (
     <nav
       className={`${styles.navigation} ${cormorantGaramond.className}`}
@@ -53,13 +60,13 @@ export default function NavigationGeneral({
         </ul>
 
         <h1 className={`${logoClassName} ${styles.logo}`}>
-          <button
-            type="button"
+          <Link
+            href="/"
             className={styles.logoButton}
             onClick={handleLogoClick}
           >
             Tiana
-          </button>
+          </Link>
         </h1>
 
         <ul className={`${styles.list} ${styles.rightList}`}>
@@ -75,7 +82,9 @@ export default function NavigationGeneral({
             </Link>
           </li>
           <li>
-            <Link href="/appointment">Записаться на приём</Link>
+            <Link href="/?section=appointment" onClick={handleAppointmentClick}>
+              Записаться на приём
+            </Link>
           </li>
         </ul>
       </div>

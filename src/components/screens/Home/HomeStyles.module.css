@@ -37,6 +37,10 @@
   transform: translateY(-118%);
 }
 
+:global(.appointment-open) .content {
+  transform: translateY(-118%);
+}
+
 @keyframes borderSlideIn {
   from {
     transform: scaleX(0);

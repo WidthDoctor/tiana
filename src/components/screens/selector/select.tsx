@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MouseEvent, TouchEvent } from "react";
+import type { TouchEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -405,11 +405,24 @@ export default function Select({ faqItems }: SelectProps) {
     };
   }, [closeContentWithReverse]);
 
-  const handleLogoClick = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (isContentVisible) {
-      event.preventDefault();
+  useEffect(() => {
+    const handleAppointmentOpen = () => {
       closeContentWithReverse();
-      return;
+    };
+
+    window.addEventListener("tiana:open-appointment", handleAppointmentOpen);
+
+    return () => {
+      window.removeEventListener(
+        "tiana:open-appointment",
+        handleAppointmentOpen,
+      );
+    };
+  }, [closeContentWithReverse]);
+
+  const handleLogoClick = () => {
+    if (isContentVisible) {
+      closeContentWithReverse();
     }
 
     closeDrawer();
@@ -887,6 +900,9 @@ export default function Select({ faqItems }: SelectProps) {
           }}
           onAccessoriesOpen={() => {
             window.dispatchEvent(new CustomEvent("tiana:open-accessories"));
+          }}
+          onAppointmentOpen={() => {
+            window.dispatchEvent(new CustomEvent("tiana:open-appointment"));
           }}
           onCloseDrawer={closeDrawer}
         />

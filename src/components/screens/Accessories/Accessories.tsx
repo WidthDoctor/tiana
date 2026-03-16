@@ -180,14 +180,23 @@ export default function Accessories({ initialCategories }: AccessoriesProps) {
       closeAccessories();
     };
 
+    const handleAppointmentOpen = () => {
+      closeAccessories();
+    };
+
     window.addEventListener("tiana:logo-close-content", handleLogoClose);
     window.addEventListener("tiana:open-portfolio", handlePortfolioOpen);
     window.addEventListener("tiana:open-journal", handleJournalOpen);
+    window.addEventListener("tiana:open-appointment", handleAppointmentOpen);
 
     return () => {
       window.removeEventListener("tiana:logo-close-content", handleLogoClose);
       window.removeEventListener("tiana:open-portfolio", handlePortfolioOpen);
       window.removeEventListener("tiana:open-journal", handleJournalOpen);
+      window.removeEventListener(
+        "tiana:open-appointment",
+        handleAppointmentOpen,
+      );
     };
   }, [closeAccessories]);
 

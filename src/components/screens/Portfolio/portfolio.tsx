@@ -358,14 +358,23 @@ export default function Portfolio({ portfolioBrides }: PortfolioProps) {
       closePortfolio();
     };
 
+    const handleAppointmentOpen = () => {
+      closePortfolio();
+    };
+
     window.addEventListener("tiana:open-journal", handleJournalOpen);
     window.addEventListener("tiana:open-accessories", handleAccessoriesOpen);
+    window.addEventListener("tiana:open-appointment", handleAppointmentOpen);
 
     return () => {
       window.removeEventListener("tiana:open-journal", handleJournalOpen);
       window.removeEventListener(
         "tiana:open-accessories",
         handleAccessoriesOpen,
+      );
+      window.removeEventListener(
+        "tiana:open-appointment",
+        handleAppointmentOpen,
       );
     };
   }, [closePortfolio]);

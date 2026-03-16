@@ -35,6 +35,9 @@ pnpm-debug.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# server secrets
+src/server/google/service-account.json
+
 # local editor settings
 .vscode/*
 !.vscode/extensions.json

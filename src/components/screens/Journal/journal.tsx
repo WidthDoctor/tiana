@@ -219,9 +219,14 @@ export default function Journal({ initialPosts }: JournalProps) {
       closeJournal();
     };
 
+    const handleAppointmentOpen = () => {
+      closeJournal();
+    };
+
     window.addEventListener("tiana:logo-close-content", handleLogoClose);
     window.addEventListener("tiana:open-portfolio", handlePortfolioOpen);
     window.addEventListener("tiana:open-accessories", handleAccessoriesOpen);
+    window.addEventListener("tiana:open-appointment", handleAppointmentOpen);
 
     return () => {
       window.removeEventListener("tiana:logo-close-content", handleLogoClose);
@@ -229,6 +234,10 @@ export default function Journal({ initialPosts }: JournalProps) {
       window.removeEventListener(
         "tiana:open-accessories",
         handleAccessoriesOpen,
+      );
+      window.removeEventListener(
+        "tiana:open-appointment",
+        handleAppointmentOpen,
       );
     };
   }, [closeJournal]);

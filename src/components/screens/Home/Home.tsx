@@ -12,6 +12,7 @@ import NavigationGeneral from "./NavigationGeneral";
 import Portfolio from "../Portfolio/portfolio";
 import Journal from "../Journal/journal";
 import Accessories from "../Accessories/Accessories";
+import Appointment from "../Appointment/Appointment";
 import Select from "../selector";
 
 type HomeProps = {
@@ -30,6 +31,11 @@ export default function Home({
   const handleHeroPortfolioClick = (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
     window.dispatchEvent(new CustomEvent("tiana:open-portfolio"));
+  };
+
+  const handleHeroAppointmentClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    window.dispatchEvent(new CustomEvent("tiana:open-appointment"));
   };
 
   return (
@@ -51,7 +57,11 @@ export default function Home({
           </p>
 
           <div className={styles.heroActions}>
-            <Link href="/appointment" className={styles.heroPrimaryAction}>
+            <Link
+              href="/?section=appointment"
+              className={styles.heroPrimaryAction}
+              onClick={handleHeroAppointmentClick}
+            >
               Записаться на прием
             </Link>
             <Link
@@ -68,6 +78,7 @@ export default function Home({
       <Portfolio portfolioBrides={portfolioBrides} />
       <Accessories initialCategories={accessoryCategories} />
       <Journal initialPosts={journalPosts} />
+      <Appointment />
     </main>
   );
 }
