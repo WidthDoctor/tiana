@@ -30,6 +30,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Disable API routes for static export
+        run: |
+          if [ -d src/app/api ]; then
+            mv src/app/api src/app/api__disabled_for_pages
+          fi
+
       - name: Build static site
         run: npm run build
 
