@@ -5,9 +5,8 @@ import serviceAccount from "@/server/google/service-account.json";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const APPOINTMENT_DURATION_HOURS = 2;
-const BUFFER_DURATION_HOURS = 1;
-const SLOT_OCCUPIED_HOURS = APPOINTMENT_DURATION_HOURS + BUFFER_DURATION_HOURS;
+const APPOINTMENT_DURATION_HOURS = 2.5;
+const SLOT_OCCUPIED_HOURS = APPOINTMENT_DURATION_HOURS;
 
 type BookingPayload = {
   date?: string;
@@ -142,9 +141,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const slotEnd = new Date(
-    slotStart.getTime() + SLOT_OCCUPIED_HOURS * 60 * 60 * 1000,
-  );
+  // Если запись на 19:00 — длительность 2 часа, иначе 2.5
+  let slotEnd: Date;
+  if (slotStart.getHours() === 19 && slotStart.getMinutes() === 0) {
+    slotEnd = new Date(slotStart.getTime() + 2 * 60 * 60 * 1000); // 2 часа
+  } else {
+    slotEnd = new Date(slotStart.getTime() + 2.5 * 60 * 60 * 1000); // 2.5 часа
+  }
   const calendarId = (process.env.GOOGLE_CALENDAR_ID ?? "primary").trim();
 
   try {
@@ -197,7 +200,7 @@ export async function POST(request: Request) {
           `Телефон: ${phone}`,
           `Email: ${email}`,
           "",
-          "Формат слота: 2 часа визит + 1 час технический перерыв.",
+          "Формат слота: 2 часа визит + 30 мин технический перерыв.",
         ].join("\n"),
         start: {
           dateTime: slotStart.toISOString(),
