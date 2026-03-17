@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import type { TouchEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -9,6 +9,7 @@ import { cormorantGaramond, erasLight } from "../../../app/fonts";
 import Faq from "../Faq/Faq";
 import type { FaqItem } from "../Faq/types";
 import styles from "../Home/NavbarMini.module.css";
+import homeStyles from "../Home/HomeStyles.module.css";
 import { MENU_CONTENT_ITEMS } from "./menuContentConfig";
 import type { MenuContentItem } from "./menuContentConfig";
 import SelectMobile from "./selectMobile";
@@ -405,21 +406,6 @@ export default function Select({ faqItems }: SelectProps) {
     };
   }, [closeContentWithReverse]);
 
-  useEffect(() => {
-    const handleAppointmentOpen = () => {
-      closeContentWithReverse();
-    };
-
-    window.addEventListener("tiana:open-appointment", handleAppointmentOpen);
-
-    return () => {
-      window.removeEventListener(
-        "tiana:open-appointment",
-        handleAppointmentOpen,
-      );
-    };
-  }, [closeContentWithReverse]);
-
   const handleLogoClick = () => {
     if (isContentVisible) {
       closeContentWithReverse();
@@ -776,7 +762,12 @@ export default function Select({ faqItems }: SelectProps) {
         </h2>
 
         <p className={`${styles.contentText} ${cormorantGaramond.className}`}>
-          {menu.contentText}
+          {menu.contentText?.split("\n").map((line, idx) => (
+            <React.Fragment key={idx}>
+              {line}
+              <br />
+            </React.Fragment>
+          ))}
         </p>
 
         {menu.contentBlocks?.length ? (
@@ -818,15 +809,39 @@ export default function Select({ faqItems }: SelectProps) {
         ) : null}
 
         {menu.imageSrc ? (
-          <div className={styles.contentMedia}>
-            <Image
-              src={withBasePath(menu.imageSrc)}
-              alt={menu.contentTitle ?? menu.label}
-              fill
-              sizes="(max-width: 900px) calc(100vw - 120px), 60vw"
-              className={styles.contentImage}
-            />
-          </div>
+          <>
+            {menu.id === "appointment" && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginBottom: 24,
+                }}
+              >
+                <button
+                  type="button"
+                  className={homeStyles.heroPrimaryAction}
+                  onClick={() => {
+                    closeContentWithReverse();
+                    setTimeout(() => {
+                      router.push("/?section=appointment");
+                    }, CONTENT_CLOSE_DURATION);
+                  }}
+                >
+                  Записаться на приём
+                </button>
+              </div>
+            )}
+            <div className={styles.contentMedia}>
+              <Image
+                src={withBasePath(menu.imageSrc) ?? ""}
+                alt={menu.contentTitle ?? menu.label}
+                fill
+                sizes="(max-width: 900px) calc(100vw - 120px), 60vw"
+                className={styles.contentImage}
+              />
+            </div>
+          </>
         ) : null}
       </>
     );

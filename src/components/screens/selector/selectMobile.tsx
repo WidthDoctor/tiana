@@ -73,11 +73,6 @@ export default function SelectMobile({
       onAccessoriesOpen();
       return;
     }
-
-    if (isAppointment) {
-      event.preventDefault();
-      onAppointmentOpen();
-    }
   };
 
   return (
