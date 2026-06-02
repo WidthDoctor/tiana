@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
   trailingSlash: true,
   basePath,
   assetPrefix: basePath || undefined,
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default nextConfig;

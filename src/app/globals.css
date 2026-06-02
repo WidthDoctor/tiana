@@ -10,8 +10,8 @@ body {
 
 html,
 body {
-  width: 100%;
-  overflow-x: hidden;
+  overflow: hidden;
+  scrollbar-gutter: stable both-edges;
 }
 
 html.portfolio-open,

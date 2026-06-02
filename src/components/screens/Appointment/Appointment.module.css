@@ -9,6 +9,7 @@
     opacity 0.45s ease,
     transform 0.45s ease;
   overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
   padding: 126px 40px 44px;
 }
 

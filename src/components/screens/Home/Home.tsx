@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import type { MouseEvent } from "react";
 import { erasLight } from "../../../app/fonts";
 import type { AccessoryCategory } from "../Accessories/types";
@@ -37,6 +38,16 @@ export default function Home({
     event.preventDefault();
     window.dispatchEvent(new CustomEvent("tiana:open-appointment"));
   };
+
+  useEffect(() => {
+    document.documentElement.classList.add("home-root");
+    document.body.classList.add("home-root");
+
+    return () => {
+      document.documentElement.classList.remove("home-root");
+      document.body.classList.remove("home-root");
+    };
+  }, []);
 
   return (
     <main className={styles.container}>
